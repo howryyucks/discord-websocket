@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "discord-websocket"
+version = "0.0.6"
+description = "Simple module for discord self-bots and bots (WebSocket + discord API)"
+authors = ["Howry Yucks"]
+license = "GNU General Public License v3 (GPLv3)"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+aiohttp = ">=3.8.4,<3.9.0"
+websockets = ">=10.4,<11.0"
+multidict = ">=6.0.4,<6.1.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
