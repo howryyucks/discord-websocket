@@ -55,9 +55,9 @@ class Attachment:
                     raise HTTPException(status_code=response.status, text="Attachment not found")
 
     async def save(
-        self, file_path: Union[io.BufferedIOBase, str],
-        seek: bool = True,
-        from_cache: bool = False
+            self, file_path: Union[io.BufferedIOBase, str],
+            seek: bool = True,
+            from_cache: bool = False
     ) -> int:
         """
         Save the attachment into a file/PathLike/BufferedIOBase.
@@ -110,12 +110,12 @@ class File:
     __slots__ = ('fp', '_filename', 'spoiler', 'description', '_original_pos', '_owner', '_closer', '_cs_md5')
 
     def __init__(
-        self,
-        fp: Union[str, bytes, os.PathLike[Any], io.BufferedIOBase, io.StringIO],
-        filename: Optional[str] = None,
-        *,
-        spoiler: bool = False,
-        description: Optional[str] = None,
+            self,
+            fp: Union[str, bytes, os.PathLike[Any], io.BufferedIOBase, io.StringIO],
+            filename: Optional[str] = None,
+            *,
+            spoiler: bool = False,
+            description: Optional[str] = None,
     ):
         """
         Helper class for uploading attachments into Discord.

@@ -151,3 +151,32 @@ class Guild:
     @classmethod
     def from_dict(cls, data: Dict[Any, Any]) -> Self:
         return cls(data=data)
+
+
+class GuildCache:
+    guilds: Dict[str, Union[Dict[Any, Any], Guild]] = {}
+
+    def __init__(self) -> None:
+        pass
+
+    def __repr__(self) -> Optional[str]:
+        return f"<GuildCache: {len(self.guilds)} guilds>"
+
+    def __str__(self) -> Optional[str]:
+        return f"{len(self.guilds)} guilds"
+
+    def __get_guild(self, guild_id: str) -> Union[Dict[Any, Any], Guild]:
+        return self.guilds.get(guild_id, None)
+
+    def try_get(self, guild_id: str) -> Union[Dict[Any, Any], Guild]:
+        return self.__get_guild(guild_id)
+
+    def add_guild(self, guild_id: str, guild: Union[Dict[Any, Any], Guild]) -> Union[Dict[Any, Any], Guild]:
+        self.guilds[guild_id] = guild
+        return guild
+
+    def remove_guild(self, guild_id: str) -> None:
+        del self.guilds[guild_id]
+
+    def clear(self) -> None:
+        return self.guilds.clear()

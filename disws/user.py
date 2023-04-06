@@ -128,8 +128,8 @@ class Member(BaseUser):
         self._guild_update(guild)
 
     def _guild_update(
-        self,
-        data: Dict[Any, Any] = Optional[Dict[Any, Any]],
+            self,
+            data: Dict[Any, Any] = Optional[Dict[Any, Any]],
     ) -> None:
         if data is not None:
             self.guild: Optional[disws.guild.Guild] = disws.guild.Guild(data["guild"]) if data.get("guild",

@@ -19,8 +19,8 @@ class DiscordGuild(BaseRequest):
         self.headers = headers or {}
 
     async def get_guild(
-        self, guild_id: int, headers: dict[any, any] = None,
-        to_dict: bool = False
+            self, guild_id: int, headers: dict[any, any] = None,
+            to_dict: bool = False
     ) -> Guild:
         """
         Get a guild by id.
@@ -41,8 +41,8 @@ class DiscordGuild(BaseRequest):
                 raise HTTPException(status_code=response.status, text=await response.json())
 
     async def get_guild_user(
-        self, guild_id: int, user_id: int,
-        headers: dict = None, to_dict: bool = False
+            self, guild_id: int, user_id: int,
+            headers: dict = None, to_dict: bool = False
     ) -> Member:
         """
         Get a user by guild id.

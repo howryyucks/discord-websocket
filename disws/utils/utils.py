@@ -6,7 +6,7 @@ discord-websocket (disws, ver 0.0.7)
 source code: https://github.com/howryyucks/discord-websocket
 """
 from datetime import datetime
-from enum import Enum, auto
+from enum import StrEnum
 from typing import Optional, Union, Callable, overload, Type, Generic, TypeVar, Any, Dict, List
 
 T = TypeVar('T')
@@ -149,8 +149,8 @@ def get_banner_url(user_id: int, banner: Optional[str]) -> Optional[str]:
 
 
 def get_member_create_date(
-    user_id: Union[str, int],
-    to_string: str = "%d.%m.%Y %H:%M:%S",
+        user_id: Union[str, int],
+        to_string: str = "%d.%m.%Y %H:%M:%S",
 ) -> Optional[str]:
     if user_id == -1:
         return None
@@ -173,13 +173,13 @@ def has_nitro(premium_type: Optional[int]) -> str:
 
 
 def from_timestamp_to_humanly(
-    timestamp: int, to_string: str = "%d.%m.%Y %H:%M:%S"
+        timestamp: Union[float, int], to_string: str = "%d.%m.%Y %H:%M:%S"
 ) -> str:
     return datetime.fromtimestamp(timestamp / 1000.0).strftime(to_string)
 
 
 def from_iso_format_to_humanly(
-    iso: str, to_string: str = "%d.%m.%Y %H:%M:%S"
+        iso: str, to_string: str = "%d.%m.%Y %H:%M:%S"
 ) -> Optional[str]:
     try:
         date = datetime.fromisoformat(iso)
@@ -188,19 +188,22 @@ def from_iso_format_to_humanly(
     return date.strftime(to_string)
 
 
-class EventStatus(Enum):
-    PRESENCE_UPDATE = auto()
-    MESSAGE_CREATE = auto()
-    CHANNEL_CREATE = auto()
-    GUILD_AUDIT_LOG_ENTRY_CREATE = auto()
-    CHANNEL_UPDATE = auto()
-    MESSAGE_UPDATE = auto()
-    SESSIONS_REPLACE = auto()
-    MESSAGE_REACTION_ADD = auto()
-    MESSAGE_REACTION_REMOVE = auto()
-    MESSAGE_ACK = auto()
-    VOICE_STATE_UPDATE = auto()
-    CALL_CREATE = auto()
-    CALL_UPDATE = auto()
-    CALL_DELETE = auto()
-    TYPING_START = auto()
+class EventStatus(StrEnum):
+    READY = "READY"
+    PRESENCE_UPDATE = "PRESENCE_UPDATE"
+    MESSAGE_CREATE = "MESSAGE_CREATE"
+    CHANNEL_CREATE = "CHANNEL_CREATE"
+    GUILD_MEMBER_UPDATE = "GUILD_MEMBER_UPDATE"
+    GUILD_AUDIT_LOG_ENTRY_CREATE = "GUILD_AUDIT_LOG_ENTRY_CREATE"
+    CHANNEL_UPDATE = "CHANNEL_UPDATE"
+    MESSAGE_DELETE = "MESSAGE_DELETE"
+    MESSAGE_UPDATE = "MESSAGE_UPDATE"
+    SESSIONS_REPLACE = "SESSIONS_REPLACE"
+    MESSAGE_REACTION_ADD = "MESSAGE_REACTION_ADD"
+    MESSAGE_REACTION_REMOVE = "MESSAGE_REACTION_REMOVE"
+    MESSAGE_ACK = "MESSAGE_ACK"
+    VOICE_STATE_UPDATE = "VOICE_STATE_UPDATE"
+    CALL_CREATE = "CALL_CREATE"
+    CALL_UPDATE = "CALL_UPDATE"
+    CALL_DELETE = "CALL_DELETE"
+    TYPING_START = "TYPING_START"

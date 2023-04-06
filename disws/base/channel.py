@@ -46,13 +46,13 @@ class DiscordChannel(BaseRequest):
 
     @overload
     async def send_message(
-        self,
-        channel: Union[TextChannel, str, int],
-        *,
-        content: Optional[str] = None,
-        silent: Optional[bool] = False,
-        embeds: Optional[List[Embed]] = None,
-        attachments: Optional[List[File]] = None
+            self,
+            channel: Union[TextChannel, str, int],
+            *,
+            content: Optional[str] = None,
+            silent: Optional[bool] = False,
+            embeds: Optional[List[Embed]] = None,
+            attachments: Optional[List[File]] = None
     ) -> Optional[Message]:
         """
         Send a message to a channel.
@@ -70,13 +70,13 @@ class DiscordChannel(BaseRequest):
 
     @overload
     async def send_message(
-        self,
-        channel: Union[TextChannel, str, int],
-        *,
-        content: Optional[str] = None,
-        silent: Optional[bool] = False,
-        embeds: Optional[List[Embed]] = None,
-        attachments: Optional[File] = None
+            self,
+            channel: Union[TextChannel, str, int],
+            *,
+            content: Optional[str] = None,
+            silent: Optional[bool] = False,
+            embeds: Optional[List[Embed]] = None,
+            attachments: Optional[File] = None
     ) -> Optional[Message]:
         """
         Send a message to a channel.
@@ -93,11 +93,11 @@ class DiscordChannel(BaseRequest):
         ...
 
     async def send_message(
-        self, channel: Union[TextChannel, str, int],
-        *,
-        content: Optional[str] = None,
-        silent: Optional[bool] = False,
-        **kwargs,
+            self, channel: Union[TextChannel, str, int],
+            *,
+            content: Optional[str] = None,
+            silent: Optional[bool] = False,
+            **kwargs,
     ) -> Optional[Message]:
         """
         Send a message to a channel.

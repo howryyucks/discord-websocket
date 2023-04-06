@@ -18,12 +18,12 @@ class BaseRequest:
         self.session = session
 
     async def send_request(
-        self,
-        url: str,
-        method: Literal["GET", "DELETE", "POST", "PATCH", "PUT"] = "GET",
-        json: Union[Dict[Any, Any], FormData] = None,
-        params: Dict[Any, Any] = None,
-        headers: Dict[Any, Any] = None,
+            self,
+            url: str,
+            method: Literal["GET", "DELETE", "POST", "PATCH", "PUT"] = "GET",
+            json: Union[Dict[Any, Any], FormData] = None,
+            params: Dict[Any, Any] = None,
+            headers: Dict[Any, Any] = None,
     ) -> Optional[ClientResponse]:
         """
         Send a request to the Discord API.

@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Self, Union
 
 from disws.types import Message as Msg
-from disws.utils import from_iso_format_to_humanly
+from disws.utils import from_iso_format_to_humanly, from_timestamp_to_humanly
 from .attachment import Attachment
 from .embed import Embed
 from .guild import Guild
@@ -28,9 +28,8 @@ class Message:
     def __init__(self, data: Msg, guild_data: Dict[str, Any] = None) -> None:
         self.id: int = int(data["id"])
         self.__guild_data = guild_data or {}
-        self.timestamp: Union[
-            datetime, str
-        ] = from_iso_format_to_humanly(data["timestamp"]) if data.get("timestamp", None) else None
+        self.timestamp: Optional[float] = datetime.fromisoformat(data["timestamp"]).timestamp() \
+            if data.get("timestamp", None) else None
         self.pinned: bool = data.get("pinned", False)
         self.tts: bool = data.get("tts", False)
         self.referenced_message: Optional[Message] = data.get("referenced_message", None)
@@ -102,6 +101,7 @@ class Message:
             "referenced_message": self.referenced_message,
             "mentions": mentions_dict,
             "mention_roles": self.mention_roles,
+            "guild": self.guild.to_dict() if getattr(self, "guild", None) else None,
             "mention_everyone": self.mention_everyone,
             "embeds": embeds_dict,
             "edited_timestamp": self.edited_timestamp,
@@ -114,12 +114,20 @@ class Message:
         }
 
     @property
-    def created_at(self) -> Union[datetime, str]:
+    def created_at(self) -> Optional[float]:
         return self.timestamp
+
+    @property
+    def created_at_formatted(self) -> str:
+        return from_timestamp_to_humanly(self.timestamp)
 
     @property
     def edited_at(self) -> str:
         return self.edited_timestamp or "Not edited"
+
+    @property
+    def edited_at_formatted(self) -> str:
+        return from_iso_format_to_humanly(self.edited_timestamp) if self.edited_timestamp else "Not edited"
 
     @classmethod
     def from_dict(cls, data: Dict[Any, Any], guild_data: Dict[Any, Any] = None) -> Self:
@@ -133,7 +141,7 @@ class MessageCache:
         pass
 
     def add_message(
-        self, message_id: Union[int, str], message: Union[Dict[Any, Any], "Message"]
+            self, message_id: Union[int, str], message: Union[Dict[Any, Any], "Message"]
     ) -> Union[Dict[Any, Any]]:
         if isinstance(message, dict):
             self.messages[message_id] = Message.from_dict(message)
@@ -145,7 +153,7 @@ class MessageCache:
         return self.messages.get(message_id, None)
 
     def mark_message_as_deleted(
-        self, message_id: int, convert_to_dict: bool = False
+            self, message_id: int, convert_to_dict: bool = False
     ) -> Union[Dict[Any, Any], "Message"]:
         result: Union[Dict[Any, Any], "Message"] = self.messages.pop(message_id, None)
         if convert_to_dict:
@@ -153,7 +161,7 @@ class MessageCache:
         return result
 
     def mark_message_as_edited(
-        self, message_id: int, new_message: Union[Dict[Any, Any], Message], guild_data: Dict[Any, Any] = None
+            self, message_id: int, new_message: Union[Dict[Any, Any], Message], guild_data: Dict[Any, Any] = None
     ) -> tuple[Union[Dict[Any, Any], Message, str], Union[Dict[Any, Any], Message, str]]:
         if self.messages.get(message_id, None) is not None:
             old_message = self.messages[message_id]

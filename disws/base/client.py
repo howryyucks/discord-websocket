@@ -14,6 +14,7 @@ from disws.base.api_base import BaseRequest
 from disws.base.channel import DiscordChannel
 from disws.base.guild import DiscordGuild
 from disws.base.user import DiscordUser
+from ..guild import GuildCache
 from ..message import Message, MessageCache
 from ..user import Member
 
@@ -44,6 +45,7 @@ class BaseClient(DiscordUser, DiscordChannel, DiscordGuild, BaseRequest):
             "on_ready": [self.on_ready]
         }
         self.message_cache = MessageCache()
+        self.guild_cache = GuildCache()
 
     async def on(self, event_name: str, callback: Callable) -> None:
         """

@@ -19,7 +19,7 @@ from typing import Union, Dict, Any, Optional
 import websockets.exceptions
 
 from disws.base.client import BaseClient
-from disws.utils import Intents, WebSocketStatus
+from disws.utils import Intents, WebSocketStatus, EventStatus
 from .errors import DiscordTokenError
 from ..message import Message
 from ..user import Member
@@ -225,11 +225,11 @@ class Client(BaseClient):
 
             elif op_code == self.DISPATCH:
                 guild = None
-                if event == "READY":
+                if event == EventStatus.READY:
                     self.loop.create_task(self.trigger("on_ready"))
                     self.ready = True
 
-                if event == "GUILD_MEMBER_UPDATE":
+                if event == EventStatus.GUILD_MEMBER_UPDATE:
                     result = Member(data["user"])
                     await self.trigger("on_guild_member_update", result)
                 if isinstance(data, dict) and data.get("guild_id", None):
@@ -237,8 +237,14 @@ class Client(BaseClient):
                     if member:
                         guild = {
                             "guild": (
-                                await self.get_guild(data["guild_id"], headers=self.headers,
-                                                     to_dict=True)),
+                                    self.guild_cache.try_get(str(data["guild_id"]))
+                                    or
+                                    self.guild_cache.add_guild(str(data["guild_id"]), await self.get_guild(
+                                        data["guild_id"],
+                                        headers=self.headers,
+                                        to_dict=True
+                                    ))
+                            ),
                             "nick": member.get("nick", None),
                             "avatar": member.get("avatar", None),
                             "roles": member.get("roles", []),
@@ -251,14 +257,14 @@ class Client(BaseClient):
                             "permissions": member.get("permissions", None),
                             "communication_disabled_until": member.get("communication_disabled_until", None),
                         }
-                if event == "MESSAGE_CREATE":
+                if event == EventStatus.MESSAGE_CREATE:
                     result = Message.from_dict(data, guild_data=guild)
                     self.message_cache.add_message(data["id"], result)
                     self.loop.create_task(self.trigger("on_message_create", result))
-                if event == "MESSAGE_DELETE":
+                if event == EventStatus.MESSAGE_DELETE:
                     result = self.message_cache.mark_message_as_deleted(data["id"], convert_to_dict=False)
                     self.loop.create_task(self.trigger("on_message_delete", result))
-                if event == "MESSAGE_UPDATE":
+                if event == EventStatus.MESSAGE_UPDATE:
                     before, after = self.message_cache.mark_message_as_edited(data["id"], data, guild)
                     self.loop.create_task(self.trigger("on_message_edit", before, after))
 
