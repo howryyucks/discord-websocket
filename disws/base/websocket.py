@@ -8,24 +8,43 @@ source code: https://github.com/howryyucks/discord-websocket
 
 import asyncio.exceptions
 import json
+import logging
 import os
 import re
 import time
+import zlib
 from traceback import format_exc
-from typing import Union
+from typing import Union, Dict, Any, Optional
 
 import websockets.exceptions
 
 from disws.base.client import BaseClient
-from disws.message import Message
-from disws.utils import Intents, WebSocketStatus, log
-from ..user import Member
+from disws.utils import Intents, WebSocketStatus
 from .errors import DiscordTokenError
+from ..message import Message
+from ..user import Member
+
+
+# aiohttp.http_websocket.
 
 
 class Client(BaseClient):
-    last_ping_time: int = 0
-    heartbeat_interval = 41250 / 1000
+    # OP Codes
+    DISPATCH = 0
+    HEARTBEAT = 1
+    IDENTIFY = 2
+    PRESENCE = 3
+    VOICE_STATE = 4
+    VOICE_PING = 5
+    RESUME = 6
+    RECONNECT = 7
+    REQUEST_MEMBERS = 8
+    INVALIDATE_SESSION = 9
+    HELLO = 10
+    HEARTBEAT_ACK = 11
+    GUILD_SYNC = 12
+
+    last_ping_time: float = 0
     sequence: Union[int, None] = None
 
     def __init__(self, token: str, api_num: int = 10, bot: bool = False) -> None:
@@ -41,6 +60,7 @@ class Client(BaseClient):
         :raises ValueError: If the token is not a valid Discord token, or is not provided.
         :returns: Client
         """
+        self.closed = None
         self.__pattern_token = r"\b[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b"
         if not token:
             raise DiscordTokenError(text="Token is required.")
@@ -50,20 +70,21 @@ class Client(BaseClient):
 
         super().__init__(f"Bot {token}" if bot else token)
         self.bot = bot
-        self._api_url = f"wss://gateway.discord.gg/?v={api_num}&encoding=json"
+        self._api_url = f"wss://gateway.discord.gg/?v={api_num}&encoding=json&compress=zlib-stream"
         self.token = f"Bot {token}" if self.bot else token
-        self._conn = None
-        self.ws: websockets.WebSocketClientProtocol = None
+        self.zlib = zlib.decompressobj()
+        self.zlib_suffix = b'\x00\x00\xff\xff'
+        self.ws = None
+        self.work: bool = False
+        self.ready: bool = False
+        self.loop: Optional[asyncio.AbstractEventLoop] = None
         self.wait = True
 
-    def _get_ping_timeout(self) -> float:
-        return self.heartbeat_interval
-
-    def _gen_payload(self, op_code):
+    def _gen_payload(self, op_code: Union[int, str] = None) -> Dict[str, Any]:
         intents = Intents().get_intents() if self.bot else None
 
         return {
-            "op": op_code,
+            "op": self.IDENTIFY if not op_code else op_code,
             "d": {
                 "token": self.token,
                 "intents": intents,
@@ -72,165 +93,203 @@ class Client(BaseClient):
             },
         }
 
-    def run(self) -> None:
+    def run(self, func: Any = None) -> None:
         """
         Runs the Client.
-        :return: None
-        """
-        log.info("Running Discord Client...")
-        self._conn = asyncio.ensure_future(self.connect())
 
-    def stop(self) -> None:
-        """
-        Stops the Client.
+        :param func: (optional) The coroutine function to run.
         :return: None
         """
-        log.info("Stopping Discord Client...")
-        self._conn.cancel("Closing..")
+        logging.info("Running Discord Client...")
+        self.loop = asyncio.get_event_loop()
+
+        if func:
+            if not asyncio.iscoroutinefunction(func):
+                raise ValueError(f"function \"{func.__name__}\" must be a coroutine.")
+            self.loop.create_task(func())
+
+        self.work = True
+        try:
+            self.loop.run_until_complete(self.connect())
+        except KeyboardInterrupt:
+            self.loop.create_task(self.close())
+            os._exit(0)  # type: ignore
 
     async def _connect(self) -> None:
-        log.info("Connecting to WebSocket...")
         try:
             await self.send_ws_message(self._gen_payload(WebSocketStatus.init))
         except KeyboardInterrupt:
-            await self._close()
+            await self.close()
             exit(0)
 
-    async def _close(self) -> None:
+    @staticmethod
+    async def close() -> None:
         """
         Finally closes the Web Socket connection.
         :return: Nothing
         """
-        log.info("Closing...")
-        await self.ws.close()
+        logging.info("Closing...")
+        os._exit(0)  # type: ignore
 
-    async def _reconnect(self, wait: bool = True) -> None:
+    async def reconnect(self) -> None:
         """
         Reconnects to the Web Socket.
-        :param wait: (Optional) Whether to wait for reconnection.
         :return: None
         """
-        log.info("Reconnecting...")
-        await self._close()
-        self.wait = wait
+        logging.info("Reconnecting...")
+        self.loop.create_task(self.close())
         self.run()
 
     async def _send_ping(self):
-        start = int(time.time())
-        await self.send_ws_message({"op": 1, "d": self.sequence})
-        self.last_ping_time = int(time.time())
-        log.info(f"WS ping: {self.last_ping_time - start}")
+        try:
+            await self.send_ws_message({"op": 1, "d": time.time()})
+            logging.debug("Successfully sent heartbeat")
+        except (Exception, BaseException):
+            logging.error(format_exc())
+
+    async def heartbeat(self, interval: float) -> None:
+        """
+        Sends a heartbeat to the Web Socket.
+        :param interval: The interval in seconds.
+        :return: None
+        """
+        while self.wait:
+            try:
+                await self._send_ping()
+                await asyncio.sleep(interval)
+                self.last_ping_time = time.perf_counter()
+            except asyncio.CancelledError:
+                break
+
+    def heartbeat_interval(self) -> float:
+        """
+        Gets the heartbeat interval in seconds.
+        :return: The heartbeat interval in seconds.
+        """
+        return self.last_ping_time - time.perf_counter()
+
+    @property
+    def ping(self) -> float:
+        """
+        Gets the ping interval in seconds.
+        :return: The heartbeat interval in seconds.
+        """
+        return self.last_ping_time - time.perf_counter()
+
+    @property
+    def is_ready(self) -> bool:
+        """
+        Checks if the Web Socket connection is ready.
+        :return: True if the connection is ready, False otherwise.
+        """
+        return self.ready
+
+    async def receive_ws_message(self) -> None:
+        """
+        Receives the Web Socket message.
+        :return: None
+        """
+        value = await self.ws.recv()
+        b_array = bytearray()
+        b_array.extend(value)
+
+        if len(value) < 4 or value[-4:] != self.zlib_suffix:
+            return
+
+        if value:
+            item = self.zlib.decompress(value)
+            item = json.loads(item)
+
+            op_code = item.get('op')  # Op code
+            data = item.get('d')  # Data
+            event = item.get('t')  # The event
+
+            if op_code == self.RECONNECT:
+                logging.info(f"OP Code: {op_code}. Reconnecting...")
+                await self.reconnect()
+
+            elif op_code == self.INVALIDATE_SESSION:
+                logging.info(f"OP Code: {op_code} (Invalidate session). Closing...")
+                if data:
+                    await self.close()
+
+            elif op_code == self.HELLO:
+                interval = data['heartbeat_interval'] / 1000.0
+                identify_dict = self._gen_payload()
+                await self.send_ws_message(message=identify_dict)
+                self.loop.create_task(self.heartbeat(interval))
+                self.loop.create_task(self.trigger("on_connect"))
+
+            elif op_code == self.HEARTBEAT_ACK:
+                self.heartbeat_interval()
+
+            elif op_code == self.DISPATCH:
+                guild = None
+                if event == "READY":
+                    self.loop.create_task(self.trigger("on_ready"))
+                    self.ready = True
+
+                if event == "GUILD_MEMBER_UPDATE":
+                    result = Member(data["user"])
+                    await self.trigger("on_guild_member_update", result)
+                if isinstance(data, dict) and data.get("guild_id", None):
+                    member = data.get("member")
+                    if member:
+                        guild = {
+                            "guild": (
+                                await self.get_guild(data["guild_id"], headers=self.headers,
+                                                     to_dict=True)),
+                            "nick": member.get("nick", None),
+                            "avatar": member.get("avatar", None),
+                            "roles": member.get("roles", []),
+                            "joined_at": member.get("joined_at", None),
+                            "premium_since": member.get("premium_since", None),
+                            "deaf": member.get("deaf", False),
+                            "mute": member.get("mute", False),
+                            "flags": member.get("flags", 0),
+                            "pending": member.get("pending", False),
+                            "permissions": member.get("permissions", None),
+                            "communication_disabled_until": member.get("communication_disabled_until", None),
+                        }
+                if event == "MESSAGE_CREATE":
+                    result = Message.from_dict(data, guild_data=guild)
+                    self.message_cache.add_message(data["id"], result)
+                    self.loop.create_task(self.trigger("on_message_create", result))
+                if event == "MESSAGE_DELETE":
+                    result = self.message_cache.mark_message_as_deleted(data["id"], convert_to_dict=False)
+                    self.loop.create_task(self.trigger("on_message_delete", result))
+                if event == "MESSAGE_UPDATE":
+                    before, after = self.message_cache.mark_message_as_edited(data["id"], data, guild)
+                    self.loop.create_task(self.trigger("on_message_edit", before, after))
+
+    async def connect_to_ws(self):
+        """
+        Connects to the Web Socket.
+        :return: None
+        """
+        if self.work:
+            logging.info("Connecting to WebSocket...")
+            try:
+                self.ws = await websockets.connect(self._api_url, origin="https://discord.com")
+                self.work = True
+            except (Exception, BaseException) as e:
+                raise Exception
+        else:
+            logging.info("Exiting...")
+            os._exit(0)  # type: ignore
 
     async def connect(self) -> None:
-        try:
-            print("try...")
-            async with websockets.connect(self._api_url) as session:
-                self.ws = session
-                await self._connect()
-                log.warning("Connected")
-
-                try:
-                    while self.wait:
-                        if (
-                                not self.last_ping_time
-                                or int(time.time()) - self.last_ping_time
-                                > self._get_ping_timeout()
-                        ):
-                            await self._send_ping()
-                        try:
-                            evt = await asyncio.wait_for(
-                                self.ws.recv(), timeout=self._get_ping_timeout()
-                            )
-                        except asyncio.TimeoutError:
-                            await self._send_ping()
-                        except asyncio.CancelledError:
-                            await self.ws.ping()
-                        except websockets.exceptions.ConnectionClosedError:
-                            log.fatal(f"Error: {format_exc()}\nClosing...")
-                            exit()
-                        else:
-                            try:
-                                evt_obj = json.loads(evt)
-                                if (
-                                        evt_obj["op"] != 11
-                                        and "s" in evt_obj
-                                        and evt_obj["s"]
-                                ):
-                                    self.sequence = evt_obj["s"]
-                                    if evt_obj["op"] == 10:
-                                        self.heartbeat_interval = (
-                                                int(evt_obj["d"]["heartbeat_interval"])
-                                                / 1000
-                                        )
-                            except ValueError:
-                                pass
-                            else:
-                                if evt_obj["op"] == 10:
-                                    await self.trigger("on_connect")
-                                if evt_obj["op"] == 11:
-                                    await self.trigger("on_ready")
-
-                                if evt_obj["t"] == "GUILD_MEMBER_UPDATE":
-                                    result = Member(evt_obj["d"]["user"])
-                                    await self.trigger("on_guild_member_update", result)
-                                guild = None
-                                if isinstance(evt_obj["d"], dict) and evt_obj["d"].get("guild_id", None):
-                                    member = evt_obj["d"].get("member")
-                                    if member:
-                                        guild = {
-                                            "guild": (
-                                                await self.get_guild(evt_obj["d"]["guild_id"], headers=self.headers,
-                                                                     to_dict=True)),
-                                            "nick": member.get("nick", None),
-                                            "avatar": member.get("avatar", None),
-                                            "roles": member.get("roles", []),
-                                            "joined_at": member.get("joined_at", None),
-                                            "premium_since": member.get("premium_since", None),
-                                            "deaf": member.get("deaf", False),
-                                            "mute": member.get("mute", False),
-                                            "flags": member.get("flags", 0),
-                                            "pending": member.get("pending", False),
-                                            "permissions": member.get("permissions", None),
-                                            "communication_disabled_until": member.get(
-                                                "communication_disabled_until",
-                                                None),
-                                        }
-                                if evt_obj["t"] == "MESSAGE_CREATE":
-                                    result = Message.from_dict(evt_obj["d"], guild_data=guild)
-                                    self.message_cache.add_message(
-                                        evt_obj["d"]["id"], result
-                                    )
-                                    await self.trigger("on_message_create", result)
-                                if evt_obj["t"] == "MESSAGE_DELETE":
-                                    result = self.message_cache.mark_message_as_deleted(
-                                        evt_obj["d"]["id"], convert_to_dict=False
-                                    )
-                                    await self.trigger("on_message_delete", result)
-                                if evt_obj["t"] == "MESSAGE_UPDATE":
-                                    # print(guild)
-                                    before, after = self.message_cache.mark_message_as_edited(
-                                        evt_obj["d"]["id"], evt_obj["d"], guild
-                                    )
-                                    await self.trigger("on_message_edit", before, after)
-
-                except websockets.ConnectionClosed as e:
-                    log.fatal(f"Error: {e} {format_exc()}")
-                    await self._reconnect(wait=True)
-                except asyncio.exceptions.CancelledError:
-                    log.fatal(f"Error {format_exc()}\nExiting...")
-                    os._exit(0)  # type: ignore
-                except (BaseException, Exception) as e:
-                    log.fatal(f"Error: {e} {format_exc()}")
-                    await self._reconnect(wait=True)
-        except GeneratorExit:
-            log.fatal(f"Error {format_exc()}\nExiting...")
-        except asyncio.exceptions.CancelledError:
-            # log.fatal(f"Error {format_exc()}\nExiting...")
-            os._exit(0)  # type: ignore
-        except (Exception, BaseException) as e:
-            log.fatal(f"Error: {e} {format_exc()}")
-            await asyncio.sleep(2)
-            await self._reconnect(wait=True)
+        await self.connect_to_ws()
+        while self.work:
+            try:
+                await self.receive_ws_message()
+            except KeyboardInterrupt:
+                logging.info("Closing connection (user exit)")
+                await self.close()
+            except (Exception, BaseException):
+                logging.info(format_exc())
+                logging.info("Reconnecting...")
+                await self.reconnect()
 
     async def send_ws_message(self, message: dict) -> None:
         """

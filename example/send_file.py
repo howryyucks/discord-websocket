@@ -1,29 +1,34 @@
 import asyncio
 import io
+import logging
 
 from disws import Client, File
-from disws.utils import log
 
 
 class MyClient(Client):
-    async def on_event(self, event) -> None:
-        """Receive web socket event"""
-        if not event or "op" not in event:
-            return
+    async def on_ready(self) -> None:
+        """
+        When client is ready
+        """
+        logging.info("Client is ready")
 
-        if event["op"] == 10:
-            log.info("Connecting to discord WebSocket...")
+    async def on_connect(self) -> None:
+        """
+        When client is connected
+        """
+        logging.info("Client is connected to WebSocket")
 
-        if event["op"] == 11:
-            log.info("Connected to discord WebSocket.")
+
+client = MyClient(token="your_token", bot=True)  # or bot=False if you entered a user-token
 
 
 async def main() -> None:
-    client = MyClient(token="your_token", bot=True)  # or bot=False if you entered a user-token
-
-    client.run()
-
     channel = await client.get_channel(...)  # input channel id
+
+    while not client.is_ready:  # wait until client is ready
+        logging.info("Waiting for client to be ready...")
+        await asyncio.sleep(2)
+
     await client.send_message(
         channel=channel,  # you can also input channel_id in string or integer
         silent=True,
@@ -32,11 +37,7 @@ async def main() -> None:
             File(fp="example.txt", filename="example.txt"),  # or you can input name of file
         ]
     )
-
-    client.stop()
-
-    while True:
-        await asyncio.sleep(2)
+    await client.close()
 
 
-asyncio.run(main())
+client.run(func=main)  # without ()

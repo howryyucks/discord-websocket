@@ -10,6 +10,8 @@ __version__ = "0.0.6"
 __author__ = "Howry Yucks"
 __license__ = "GNU GPL 3"
 
+import logging
+
 from .attachment import Attachment, File
 from .base.websocket import Client
 from .channel import TextChannel, VoiceChannel
@@ -19,3 +21,25 @@ from .guild import Guild
 from .message import Message, MessageCache
 from .role import Role
 from .user import Me, Member, User
+
+# basic logging
+logging.basicConfig(
+    format="%(levelname)s: [%(asctime)s] %(module)s (line: %(lineno)d): %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    level=logging.INFO
+)
+logging.basicConfig(
+    format="%(levelname)s: [%(asctime)s] %(module)s (line: %(lineno)d): %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    level=logging.CRITICAL
+)
+logging.basicConfig(
+    format="%(levelname)s: [%(asctime)s] %(module)s (line: %(lineno)d): %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    level=logging.DEBUG
+)
+logging.basicConfig(
+    format="%(levelname)s: [%(asctime)s] %(module)s (line: %(lineno)d): %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    level=logging.WARNING
+)

@@ -8,7 +8,7 @@ source code: https://github.com/howryyucks/discord-websocket
 import asyncio
 from typing import Callable, Union, Tuple, Dict, Any
 
-from aiohttp import ClientResponse, ClientSession
+from aiohttp import ClientSession
 
 from disws.base.api_base import BaseRequest
 from disws.base.channel import DiscordChannel
@@ -44,18 +44,6 @@ class BaseClient(DiscordUser, DiscordChannel, DiscordGuild, BaseRequest):
             "on_ready": [self.on_ready]
         }
         self.message_cache = MessageCache()
-
-    @staticmethod
-    async def _check_response(response: ClientResponse) -> dict:
-        if f"{response.status}"[0] == "2":
-            try:
-                data = await response.json()
-            except ValueError:
-                raise Exception(response.content)
-            else:
-                return data
-        else:
-            raise Exception(f"{response.status}: {await response.text()}")
 
     async def on(self, event_name: str, callback: Callable) -> None:
         """

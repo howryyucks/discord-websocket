@@ -65,10 +65,13 @@ class BaseRequest:
 
         elif method == "DELETE":
             return await self.session.delete(url, headers=headers)
+
         elif method == "PUT":
             return await self.session.put(url, data=payload, headers=headers)
+
         elif method == "PATCH":
             return await self.session.patch(url, data=payload, headers=headers)
+
         return None
 
     async def force_exit(self):

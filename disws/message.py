@@ -1,5 +1,5 @@
 """
-discord-websocket (disws, ver 0.0.6)
+discord-websocket (disws, ver 0.0.7)
 
 2023-2023
 
@@ -91,7 +91,7 @@ class Message:
         if self.mentions:
             for mention in self.mentions:
                 mention = mention.to_dict()
-                mention["guild"] = self.guild.to_dict()
+                mention["guild"] = self.guild.to_dict() if getattr(self, "guild", None) else None
                 mentions_dict.append(mention)
 
         return {
