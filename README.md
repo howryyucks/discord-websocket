@@ -1,6 +1,6 @@
 ## discord-websocket (known as disws)
 
-**Developer release: 0.0.6**
+**Developer release: 0.0.7**
 
 Simple module for discord self-bots and bots (WebSocket + discord API)
 

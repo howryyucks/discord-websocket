@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "discord-websocket"
-version = "0.0.6"
+version = "0.0.7"
 description = "Simple module for discord self-bots and bots (WebSocket + discord API)"
 authors = ["Howry Yucks"]
 license = "GNU General Public License v3 (GPLv3)"
