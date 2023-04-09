@@ -21,6 +21,7 @@ import websockets.exceptions
 from disws.base.client import BaseClient
 from disws.utils import Intents, WebSocketStatus, EventStatus
 from .errors import DiscordTokenError
+from ..channel import TextChannel, VoiceChannel
 from ..message import Message
 from ..user import Member
 
@@ -45,7 +46,6 @@ class Client(BaseClient):
     GUILD_SYNC = 12
 
     last_ping_time: float = 0
-    sequence: Union[int, None] = None
 
     def __init__(self, token: str, api_num: int = 10, bot: bool = False) -> None:
         """
@@ -60,7 +60,6 @@ class Client(BaseClient):
         :raises ValueError: If the token is not a valid Discord token, or is not provided.
         :returns: Client
         """
-        self.closed = None
         self.__pattern_token = r"\b[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b"
         if not token:
             raise DiscordTokenError(text="Token is required.")
@@ -70,15 +69,19 @@ class Client(BaseClient):
 
         super().__init__(f"Bot {token}" if bot else token)
         self.bot = bot
+
         self._api_url = f"wss://gateway.discord.gg/?v={api_num}&encoding=json&compress=zlib-stream"
         self.token = f"Bot {token}" if self.bot else token
+
         self.zlib = zlib.decompressobj()
         self.zlib_suffix = b'\x00\x00\xff\xff'
+
         self.ws = None
+
         self.work: bool = False
         self.ready: bool = False
+
         self.loop: Optional[asyncio.AbstractEventLoop] = None
-        self.wait = True
 
     def _gen_payload(self, op_code: Union[int, str] = None) -> Dict[str, Any]:
         intents = Intents().get_intents() if self.bot else None
@@ -131,14 +134,14 @@ class Client(BaseClient):
         logging.info("Closing...")
         os._exit(0)  # type: ignore
 
-    async def reconnect(self) -> None:
+    @staticmethod
+    async def reconnect() -> None:
         """
         Reconnects to the Web Socket.
         :return: None
         """
-        logging.info("Reconnecting...")
-        self.loop.create_task(self.close())
-        self.run()
+        logging.fatal("Please re-run this program")
+        os._exit(0)  # type: ignore
 
     async def _send_ping(self):
         try:
@@ -153,7 +156,7 @@ class Client(BaseClient):
         :param interval: The interval in seconds.
         :return: None
         """
-        while self.wait:
+        while self.work:
             try:
                 await self._send_ping()
                 await asyncio.sleep(interval)
@@ -208,6 +211,9 @@ class Client(BaseClient):
                 logging.info(f"OP Code: {op_code}. Reconnecting...")
                 await self.reconnect()
 
+            elif op_code == self.RESUME:
+                self.loop.create_task(self.trigger("on_resume"))
+
             elif op_code == self.INVALIDATE_SESSION:
                 logging.info(f"OP Code: {op_code} (Invalidate session). Closing...")
                 if data:
@@ -225,6 +231,7 @@ class Client(BaseClient):
 
             elif op_code == self.DISPATCH:
                 guild = None
+
                 if event == EventStatus.READY:
                     self.loop.create_task(self.trigger("on_ready"))
                     self.ready = True
@@ -232,6 +239,7 @@ class Client(BaseClient):
                 if event == EventStatus.GUILD_MEMBER_UPDATE:
                     result = Member(data["user"])
                     await self.trigger("on_guild_member_update", result)
+
                 if isinstance(data, dict) and data.get("guild_id", None):
                     member = data.get("member")
                     if member:
@@ -257,13 +265,39 @@ class Client(BaseClient):
                             "permissions": member.get("permissions", None),
                             "communication_disabled_until": member.get("communication_disabled_until", None),
                         }
+
+                if event == EventStatus.CHANNEL_CREATE:
+                    channel = (
+                        TextChannel(data)
+                        if data.get("type", None) == 0
+                        else VoiceChannel(data)
+                        if data.get("type", None) == 1
+                        else None
+                    )
+                    self.channel_cache.add_channel(data.get("id"), channel)
+                    self.loop.create_task(self.trigger("on_channel_create", channel))
+
+                if event == EventStatus.CHANNEL_UPDATE:
+                    before = self.channel_cache.try_get(data.get("id"))
+                    after = (
+                        TextChannel(data)
+                        if data.get("type", None) == 0
+                        else VoiceChannel(data)
+                        if data.get("type", None) == 1
+                        else None
+                    )
+                    print(before, after)
+                    self.loop.create_task(self.trigger("on_channel_update", before, after))
+
                 if event == EventStatus.MESSAGE_CREATE:
                     result = Message.from_dict(data, guild_data=guild)
                     self.message_cache.add_message(data["id"], result)
                     self.loop.create_task(self.trigger("on_message_create", result))
+
                 if event == EventStatus.MESSAGE_DELETE:
                     result = self.message_cache.mark_message_as_deleted(data["id"], convert_to_dict=False)
                     self.loop.create_task(self.trigger("on_message_delete", result))
+
                 if event == EventStatus.MESSAGE_UPDATE:
                     before, after = self.message_cache.mark_message_as_edited(data["id"], data, guild)
                     self.loop.create_task(self.trigger("on_message_edit", before, after))
@@ -292,6 +326,8 @@ class Client(BaseClient):
             except KeyboardInterrupt:
                 logging.info("Closing connection (user exit)")
                 await self.close()
+            except websockets.exceptions.ConnectionClosedError:
+                await self.reconnect()
             except (Exception, BaseException):
                 logging.info(format_exc())
                 logging.info("Reconnecting...")

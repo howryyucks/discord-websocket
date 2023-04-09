@@ -14,6 +14,7 @@ from disws.base.api_base import BaseRequest
 from disws.base.channel import DiscordChannel
 from disws.base.guild import DiscordGuild
 from disws.base.user import DiscordUser
+from ..channel import TextChannel, VoiceChannel, ChannelCache
 from ..guild import GuildCache
 from ..message import Message, MessageCache
 from ..user import Member
@@ -42,10 +43,14 @@ class BaseClient(DiscordUser, DiscordChannel, DiscordGuild, BaseRequest):
             "on_message_delete": [self.on_message_delete],
             "on_message_edit": [self.on_message_update],
             "on_connect": [self.on_connect],
-            "on_ready": [self.on_ready]
+            "on_ready": [self.on_ready],
+            "on_resume": [self.on_resume],
+            "on_channel_create": [self.on_channel_create],
+            "on_channel_update": [self.on_channel_update],
         }
         self.message_cache = MessageCache()
         self.guild_cache = GuildCache()
+        self.channel_cache = ChannelCache()
 
     async def on(self, event_name: str, callback: Callable) -> None:
         """
@@ -72,19 +77,24 @@ class BaseClient(DiscordUser, DiscordChannel, DiscordGuild, BaseRequest):
         """
         if event_name in self._callbacks:
             for callback in self._callbacks[event_name]:
-                if before and after:
+                # MSav moment
+                try:
                     await callback(before, after)
-                elif before:
-                    await callback(before)
-                else:
+                except TypeError:
                     try:
-                        await callback()
-                    except TypeError:  # sometimes got this error in on_mesaage_delete event
-                        pass
+                        await callback(before)
+                    except TypeError:
+                        try:
+                            await callback(after)
+                        except TypeError:
+                            try:
+                                await callback()
+                            except TypeError:
+                                pass
             return
 
     @staticmethod
-    async def on_event(self, event) -> None:
+    async def on_event(event) -> None:
         pass
 
     @staticmethod
@@ -104,6 +114,14 @@ class BaseClient(DiscordUser, DiscordChannel, DiscordGuild, BaseRequest):
         return
 
     @staticmethod
+    async def on_resume() -> None:
+        """
+        Called when the client is resumed from discord API
+        :return: None
+        """
+        return
+
+    @staticmethod
     async def on_guild_member_update(event: Member) -> "Member":
         """
         Called when a guild member is updated
@@ -111,6 +129,28 @@ class BaseClient(DiscordUser, DiscordChannel, DiscordGuild, BaseRequest):
         :return: :class:`Member` object
         """
         return event
+
+    @staticmethod
+    async def on_channel_create(channel: Union[TextChannel, VoiceChannel]) -> Union[TextChannel, VoiceChannel]:
+        """
+        Called when a channel is created
+        :param channel: :class:`TextChannel` or :class:`VoiceChannel` object
+        :return: :class:`TextChannel` or :class:`VoiceChannel` object
+        """
+        return channel
+
+    @staticmethod
+    async def on_channel_update(
+            before: Union[TextChannel, VoiceChannel] = None,
+            after: Union[TextChannel, VoiceChannel] = None,
+    ) -> Tuple[Union[TextChannel, VoiceChannel], Union[TextChannel, VoiceChannel]]:
+        """
+        Called when a channel is updated
+        :param before: :class:`TextChannel` or :class:`VoiceChannel` object before update
+        :param after: :class:`TextChannel` or :class:`VoiceChannel` object after update
+        :return: :class:`TextChannel` or :class:`VoiceChannel` objects
+        """
+        return before, after
 
     @staticmethod
     async def on_message_create(message: Message) -> "Message":

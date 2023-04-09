@@ -31,3 +31,9 @@ class PermissionOverwrite(TypedDict):
     type: Literal[0, 1]
     allow: bool
     deny: bool
+
+
+class ClientInfo(TypedDict):
+    version: int
+    os: str
+    client: str

@@ -25,9 +25,9 @@ class TextChannel:
 
     def __init__(self, data: MsgTextChannel) -> None:
         self.id: int = int(data["id"])
-        self.name: str = data["name"]
+        self.name: str = data.get("name")
         self.guild_id: int = int(data["guild_id"])
-        self.guild: Optional[Guild] = Guild(data["guild"]) if data["guild"] else None
+        self.guild: Optional[Guild] = (data["guild"]) if data.get("guild") else None
         self.position: int = data.get("position", 0)
         self.permission_overwrites: List[PermissionOverwrite] = data.get("permission_overwrites", [])
         self.nsfw: bool = data.get("nsfw", False)
@@ -117,3 +117,38 @@ class VoiceChannel:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> Self:
         return cls(data)
+
+
+class ChannelCache:
+    channels: Dict[str, Union[TextChannel, VoiceChannel, Any]] = {}
+
+    def __init__(self) -> None:
+        pass
+
+    def __repr__(self) -> Optional[str]:
+        return f"<GuildCache: {len(self.channels)} guilds>"
+
+    def __str__(self) -> Optional[str]:
+        return f"{len(self.channels)} guilds"
+
+    def __get_channel(self, channel_id: str) -> Union[TextChannel, VoiceChannel]:
+        return self.channels.get(channel_id, None)
+
+    def try_get(self, channel_id: str) -> Union[TextChannel, VoiceChannel]:
+        return self.__get_channel(channel_id)
+
+    def add_channel(
+            self, channel_id: str,
+            channel: Union[TextChannel, VoiceChannel]
+    ) -> Union[TextChannel, VoiceChannel]:
+        self.channels[channel_id] = channel
+        return channel
+
+    def remove_channel(self, channel_id: str) -> None:
+        del self.channels[channel_id]
+
+    def edit_channel(self, channel_id: str, channel: Union[TextChannel, VoiceChannel]) -> None:
+        self.channels[channel_id] = channel
+
+    def clear(self) -> None:
+        return self.channels.clear()
