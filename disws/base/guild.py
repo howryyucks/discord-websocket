@@ -31,7 +31,7 @@ class DiscordGuild(BaseRequest):
         :param from_cache: Returns :class:`Guild` from a :class:`GuildCache` object. Defaults to True.
         :return: :class:`Guild` object
         """
-        global resp_json
+        resp_json = None
 
         if from_cache:
             resp_json = guild_cache.try_get(guild_id=guild_id)
