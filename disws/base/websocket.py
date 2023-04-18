@@ -6,6 +6,7 @@ discord-websocket (disws, ver 0.0.6)
 source code: https://github.com/howryyucks/discord-websocket
 """
 
+from disws import message_cache, guild_cache, channel_cache
 import asyncio.exceptions
 import json
 import logging
@@ -60,6 +61,10 @@ class Client(BaseClient):
         :raises ValueError: If the token is not a valid Discord token, or is not provided.
         :returns: Client
         """
+        self.channel_cache = channel_cache
+        self.guild_cache = guild_cache
+        self.message_cache = message_cache
+
         self.__pattern_token = r"\b[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b"
         if not token:
             raise DiscordTokenError(text="Token is required.")
@@ -250,7 +255,7 @@ class Client(BaseClient):
                                     self.guild_cache.add_guild(str(data["guild_id"]), await self.get_guild(
                                         data["guild_id"],
                                         headers=self.headers,
-                                        to_dict=True
+                                        to_dict=True,
                                     ))
                             ),
                             "nick": member.get("nick", None),

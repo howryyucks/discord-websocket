@@ -26,7 +26,7 @@ class TextChannel:
     def __init__(self, data: MsgTextChannel) -> None:
         self.id: int = int(data["id"])
         self.name: str = data.get("name")
-        self.guild_id: int = int(data["guild_id"])
+        self.guild_id: int = int(data["guild_id"]) if data.get("guild_id") else None
         self.guild: Optional[Guild] = (data["guild"]) if data.get("guild") else None
         self.position: int = data.get("position", 0)
         self.permission_overwrites: List[PermissionOverwrite] = data.get("permission_overwrites", [])

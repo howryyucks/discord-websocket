@@ -12,13 +12,14 @@ from disws.types import Guild as MsgGuild, GuildWelcomeScreen
 from disws.utils import get_guild_banner_url, get_guild_icon_url, get_guild_splash_url
 from .emoji import Emoji
 from .role import Role
+from .user import Member
 
 
 class Guild:
     __slots__ = (
         "id", "name", "unavailable", "icon", "icon_hash",
         "splash", "discovery_splash", "user_is_owner",
-        "owner_id", "permissions", "afk_channel_id", "afk_timeout",
+        "owner_id", "owner", "permissions", "afk_channel_id", "afk_timeout",
         "widget_enabled", "widget_channel_id", "verification_level",
         "default_message_notifications", "explicit_content_filter",
         "roles", "emojis", "mfa_level", "application_id", "system_channel_id",
@@ -39,6 +40,7 @@ class Guild:
         self.discovery_splash: Optional[str] = data.get("discovery_splash", None)
         self.user_is_owner: bool = data.get("user_is_owner", False)
         self.owner_id: int = int(data["owner_id"])
+        self.owner: Optional[Member] = Member(data.get("owner_data", None))
         self.permissions: int = int(data["permissions"]) if data.get("permissions", None) else 0
         self.afk_channel_id: Optional[int] = int(data["afk_channel_id"]) if data.get("afk_channel_id", None) else None
         self.afk_timeout: Optional[int] = int(data["afk_timeout"]) if data.get("afk_timeout", None) else None
@@ -115,6 +117,7 @@ class Guild:
             "discovery_splash": self.discovery_splash,
             "user_is_owner": self.user_is_owner,
             "owner_id": self.owner_id,
+            "owner": self.owner.to_dict() if self.owner else None,
             "permissions": self.permissions,
             "afk_channel_id": self.afk_channel_id,
             "afk_timeout": self.afk_timeout,
@@ -165,10 +168,10 @@ class GuildCache:
     def __str__(self) -> Optional[str]:
         return f"{len(self.guilds)} guilds"
 
-    def __get_guild(self, guild_id: str) -> Union[Dict[Any, Any], Guild]:
+    def __get_guild(self, guild_id: str) -> Optional[Union[Dict[Any, Any], Guild]]:
         return self.guilds.get(guild_id, None)
 
-    def try_get(self, guild_id: str) -> Union[Dict[Any, Any], Guild]:
+    def try_get(self, guild_id: str) -> Optional[Union[Dict[Any, Any], Guild]]:
         return self.__get_guild(guild_id)
 
     def add_guild(self, guild_id: str, guild: Union[Dict[Any, Any], Guild]) -> Union[Dict[Any, Any], Guild]:

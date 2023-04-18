@@ -22,6 +22,7 @@ class BaseRequest:
             url: str,
             method: Literal["GET", "DELETE", "POST", "PATCH", "PUT"] = "GET",
             json: Union[Dict[Any, Any], FormData] = None,
+            json_data: Union[Dict[Any, Any], str] = None,
             params: Dict[Any, Any] = None,
             headers: Dict[Any, Any] = None,
     ) -> Optional[ClientResponse]:
@@ -60,17 +61,17 @@ class BaseRequest:
 
         elif method == "POST":
             return await self.session.post(
-                url, data=payload or json, headers=headers
+                url, json=json_data or payload or json, headers=headers
             )
 
         elif method == "DELETE":
-            return await self.session.delete(url, headers=headers)
+            return await self.session.delete(url, headers=headers, json=json)
 
         elif method == "PUT":
-            return await self.session.put(url, data=payload, headers=headers)
+            return await self.session.put(url, data=json_data or payload, headers=headers)
 
         elif method == "PATCH":
-            return await self.session.patch(url, data=payload, headers=headers)
+            return await self.session.patch(url, data=payload, headers=headers, json=json)
 
         return None
 

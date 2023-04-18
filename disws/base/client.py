@@ -14,9 +14,8 @@ from disws.base.api_base import BaseRequest
 from disws.base.channel import DiscordChannel
 from disws.base.guild import DiscordGuild
 from disws.base.user import DiscordUser
-from ..channel import TextChannel, VoiceChannel, ChannelCache
-from ..guild import GuildCache
-from ..message import Message, MessageCache
+from ..channel import TextChannel, VoiceChannel
+from ..message import Message
 from ..user import Member
 
 
@@ -48,9 +47,6 @@ class BaseClient(DiscordUser, DiscordChannel, DiscordGuild, BaseRequest):
             "on_channel_create": [self.on_channel_create],
             "on_channel_update": [self.on_channel_update],
         }
-        self.message_cache = MessageCache()
-        self.guild_cache = GuildCache()
-        self.channel_cache = ChannelCache()
 
     async def on(self, event_name: str, callback: Callable) -> None:
         """

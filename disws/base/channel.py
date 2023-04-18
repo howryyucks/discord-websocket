@@ -37,8 +37,9 @@ class DiscordChannel(BaseRequest):
             )
             if response.status == 200:
                 response = await response.json()
-                guild = await self.guild.get_guild(response["guild_id"], headers=self.headers, to_dict=True)
-                response["guild"] = guild
+                if response.get("guild_id"):
+                    guild = await self.guild.get_guild(response["guild_id"], headers=self.headers, to_dict=True)
+                    response["guild"] = guild
                 return TextChannel(response)
 
             else:
@@ -131,6 +132,7 @@ class DiscordChannel(BaseRequest):
             'content': content if content else '',
             'embeds': embeds,
         }
+
         data.add_field('payload_json', json.dumps(payload))
 
         if payload.get('embeds', None) is not None:
@@ -155,7 +157,7 @@ class DiscordChannel(BaseRequest):
                 f"/api/v10/channels/{channel_id}/messages",
                 method="POST",
                 json=data,
-                headers=self.headers
+                headers=self.headers,
             )
             if response.status == 200:
                 return Message(await response.json())

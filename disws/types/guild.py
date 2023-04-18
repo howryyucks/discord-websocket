@@ -5,7 +5,7 @@ discord-websocket (disws, ver 0.0.7)
 
 source code: https://github.com/howryyucks/discord-websocket
 """
-from typing import List, Literal, NotRequired, Optional, TypedDict
+from typing import List, Literal, NotRequired, Optional, TypedDict, Dict, Any
 
 from disws.types.emoji import Emoji
 from disws.types.role import Role
@@ -51,6 +51,7 @@ class Guild(BaseGuild):
     discovery_splash: Optional[str]
     user_is_owner: bool
     owner_id: Snowflake
+    owner_data: Dict[Any, Any]
     permissions: str
     afk_channel_id: Optional[Snowflake]
     afk_timeout: int
