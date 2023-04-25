@@ -19,7 +19,9 @@ class MyClient(Client):
         logging.info("Client is connected to WebSocket")
 
 
-client = MyClient(token="your_token", bot=True)  # or bot=False if you entered a user-token
+client = MyClient(
+    token="your_token", bot=True
+)  # or bot=False if you entered a user-token
 
 
 async def main() -> None:
@@ -33,9 +35,13 @@ async def main() -> None:
         channel=channel,  # you can also input channel_id in string or integer
         silent=True,
         attachments=[
-            File(fp=io.StringIO("Hello world!"), filename="example.txt"),  # send from io.StringIO()
-            File(fp="example.txt", filename="example.txt"),  # or you can input name of file
-        ]
+            File(
+                fp=io.StringIO("Hello world!"), filename="example.txt"
+            ),  # send from io.StringIO()
+            File(
+                fp="example.txt", filename="example.txt"
+            ),  # or you can input name of file
+        ],
     )
     await client.close()
 

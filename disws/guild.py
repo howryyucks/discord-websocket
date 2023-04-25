@@ -17,17 +17,47 @@ from .user import Member
 
 class Guild:
     __slots__ = (
-        "id", "name", "unavailable", "icon", "icon_hash",
-        "splash", "discovery_splash", "user_is_owner",
-        "owner_id", "owner", "permissions", "afk_channel_id", "afk_timeout",
-        "widget_enabled", "widget_channel_id", "verification_level",
-        "default_message_notifications", "explicit_content_filter",
-        "roles", "emojis", "mfa_level", "application_id", "system_channel_id",
-        "system_channel_flags", "rules_channel_id", "max_presences",
-        "max_members", "vanity_url_code", "description", "banner", "premium_tier",
-        "premium_subscription_count", "preferred_locale", "public_updates_channel_id",
-        "max_video_channel_users", "approximate_member_count", "approximate_presence_count",
-        "welcome_screen", "nsfw_level", "stickers", "premium_progress_bar_enabled",
+        "id",
+        "name",
+        "unavailable",
+        "icon",
+        "icon_hash",
+        "splash",
+        "discovery_splash",
+        "user_is_owner",
+        "owner_id",
+        "owner",
+        "permissions",
+        "afk_channel_id",
+        "afk_timeout",
+        "widget_enabled",
+        "widget_channel_id",
+        "verification_level",
+        "default_message_notifications",
+        "explicit_content_filter",
+        "roles",
+        "emojis",
+        "mfa_level",
+        "application_id",
+        "system_channel_id",
+        "system_channel_flags",
+        "rules_channel_id",
+        "max_presences",
+        "max_members",
+        "vanity_url_code",
+        "description",
+        "banner",
+        "premium_tier",
+        "premium_subscription_count",
+        "preferred_locale",
+        "public_updates_channel_id",
+        "max_video_channel_users",
+        "approximate_member_count",
+        "approximate_presence_count",
+        "welcome_screen",
+        "nsfw_level",
+        "stickers",
+        "premium_progress_bar_enabled",
     )
 
     def __init__(self, data: MsgGuild) -> None:
@@ -41,52 +71,99 @@ class Guild:
         self.user_is_owner: bool = data.get("user_is_owner", False)
         self.owner_id: int = int(data["owner_id"])
         self.owner: Optional[Member] = Member(data.get("owner_data", None))
-        self.permissions: int = int(data["permissions"]) if data.get("permissions", None) else 0
-        self.afk_channel_id: Optional[int] = int(data["afk_channel_id"]) if data.get("afk_channel_id", None) else None
-        self.afk_timeout: Optional[int] = int(data["afk_timeout"]) if data.get("afk_timeout", None) else None
+        self.permissions: int = (
+            int(data["permissions"]) if data.get("permissions", None) else 0
+        )
+        self.afk_channel_id: Optional[int] = (
+            int(data["afk_channel_id"]) if data.get("afk_channel_id", None) else None
+        )
+        self.afk_timeout: Optional[int] = (
+            int(data["afk_timeout"]) if data.get("afk_timeout", None) else None
+        )
         self.widget_enabled: bool = data.get("widget_enabled", False)
-        self.widget_channel_id: Optional[int] = int(
-            data["widget_channel_id"]
-        ) if data.get("widget_channel_id", None) else None
+        self.widget_channel_id: Optional[int] = (
+            int(data["widget_channel_id"])
+            if data.get("widget_channel_id", None)
+            else None
+        )
         self.verification_level: int = int(data["verification_level"])
-        self.default_message_notifications: int = int(data["default_message_notifications"])
-        self.explicit_content_filter: Optional[int] = int(
-            data["explicit_content_filter"]
-        ) if data.get("explicit_content_filter", None) else None
-        self.roles: Union[List[Role]] = [
-            Role(role) for role in data.get("roles", [])
-        ] if data.get("roles", []) else []
-        self.emojis: Union[List[Emoji]] = [
-            Emoji(emoji) for emoji in data.get("emojis", [])
-        ] if data.get("emojis", []) else []
+        self.default_message_notifications: int = int(
+            data["default_message_notifications"]
+        )
+        self.explicit_content_filter: Optional[int] = (
+            int(data["explicit_content_filter"])
+            if data.get("explicit_content_filter", None)
+            else None
+        )
+        self.roles: Union[List[Role]] = (
+            [Role(role) for role in data.get("roles", [])]
+            if data.get("roles", [])
+            else []
+        )
+        self.emojis: Union[List[Emoji]] = (
+            [Emoji(emoji) for emoji in data.get("emojis", [])]
+            if data.get("emojis", [])
+            else []
+        )
         self.mfa_level: int = int(data["mfa_level"])
-        self.application_id: Optional[int] = int(data["application_id"]) if data.get("application_id", None) else None
-        self.system_channel_id: Optional[int] = int(data["system_channel_id"]) \
-            if data.get("system_channel_id", None) else None
-        self.system_channel_flags: Optional[int] = int(data["system_channel_flags"]) \
-            if data.get("system_channel_flags", None) else None
-        self.rules_channel_id: Optional[int] = int(data["rules_channel_id"]) \
-            if data.get("rules_channel_id", None) else None
-        self.max_presences: Optional[int] = int(data["max_presences"]) if data.get("max_presences", None) else None
-        self.max_members: Optional[int] = int(data["max_members"]) if data.get("max_members", None) else None
+        self.application_id: Optional[int] = (
+            int(data["application_id"]) if data.get("application_id", None) else None
+        )
+        self.system_channel_id: Optional[int] = (
+            int(data["system_channel_id"])
+            if data.get("system_channel_id", None)
+            else None
+        )
+        self.system_channel_flags: Optional[int] = (
+            int(data["system_channel_flags"])
+            if data.get("system_channel_flags", None)
+            else None
+        )
+        self.rules_channel_id: Optional[int] = (
+            int(data["rules_channel_id"])
+            if data.get("rules_channel_id", None)
+            else None
+        )
+        self.max_presences: Optional[int] = (
+            int(data["max_presences"]) if data.get("max_presences", None) else None
+        )
+        self.max_members: Optional[int] = (
+            int(data["max_members"]) if data.get("max_members", None) else None
+        )
         self.vanity_url_code: Optional[str] = data.get("vanity_url_code", None)
         self.description: Optional[str] = data.get("description", None)
         self.banner: Optional[str] = data.get("banner", None)
         self.premium_tier: int = int(data["premium_tier"])
         self.premium_subscription_count: int = int(data["premium_subscription_count"])
         self.preferred_locale: Optional[str] = data.get("preferred_locale", None)
-        self.public_updates_channel_id: Optional[int] = int(data["public_updates_channel_id"]) \
-            if data.get("public_updates_channel_id", None) else None
-        self.max_video_channel_users: Optional[int] = int(data["max_video_channel_users"]) \
-            if data.get("max_video_channel_users", None) else None
-        self.approximate_member_count: Optional[int] = int(data["approximate_member_count"]) \
-            if data.get("approximate_member_count", None) else None
-        self.approximate_presence_count: Optional[int] = int(data["approximate_presence_count"]) \
-            if data.get("approximate_presence_count", None) else None
-        self.welcome_screen: Optional[GuildWelcomeScreen] = data.get("welcome_screen", None)
+        self.public_updates_channel_id: Optional[int] = (
+            int(data["public_updates_channel_id"])
+            if data.get("public_updates_channel_id", None)
+            else None
+        )
+        self.max_video_channel_users: Optional[int] = (
+            int(data["max_video_channel_users"])
+            if data.get("max_video_channel_users", None)
+            else None
+        )
+        self.approximate_member_count: Optional[int] = (
+            int(data["approximate_member_count"])
+            if data.get("approximate_member_count", None)
+            else None
+        )
+        self.approximate_presence_count: Optional[int] = (
+            int(data["approximate_presence_count"])
+            if data.get("approximate_presence_count", None)
+            else None
+        )
+        self.welcome_screen: Optional[GuildWelcomeScreen] = data.get(
+            "welcome_screen", None
+        )
         self.nsfw_level: int = int(data["nsfw_level"])
         self.stickers: List[Any] = data.get("stickers", [])
-        self.premium_progress_bar_enabled: bool = data.get("premium_progress_bar_enabled", False)
+        self.premium_progress_bar_enabled: bool = data.get(
+            "premium_progress_bar_enabled", False
+        )
 
     def icon_url(self) -> Optional[str]:
         """Get the icon url of this guild."""
@@ -174,7 +251,9 @@ class GuildCache:
     def try_get(self, guild_id: str) -> Optional[Union[Dict[Any, Any], Guild]]:
         return self.__get_guild(guild_id)
 
-    def add_guild(self, guild_id: str, guild: Union[Dict[Any, Any], Guild]) -> Union[Dict[Any, Any], Guild]:
+    def add_guild(
+        self, guild_id: str, guild: Union[Dict[Any, Any], Guild]
+    ) -> Union[Dict[Any, Any], Guild]:
         self.guilds[guild_id] = guild
         return guild
 

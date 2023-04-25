@@ -1,4 +1,3 @@
-import asyncio
 import logging
 
 from disws import Client
@@ -18,7 +17,9 @@ class MyClient(Client):
         logging.info("Client is connected to WebSocket")
 
 
-client = MyClient(token="your_token", bot=True)  # or bot=False if you entered a user-token
+client = MyClient(
+    token="your_token", bot=True
+)  # or bot=False if you entered a user-token
 
 
 async def main() -> None:

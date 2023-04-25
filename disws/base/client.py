@@ -127,7 +127,9 @@ class BaseClient(DiscordUser, DiscordChannel, DiscordGuild, BaseRequest):
         return event
 
     @staticmethod
-    async def on_channel_create(channel: Union[TextChannel, VoiceChannel]) -> Union[TextChannel, VoiceChannel]:
+    async def on_channel_create(
+        channel: Union[TextChannel, VoiceChannel]
+    ) -> Union[TextChannel, VoiceChannel]:
         """
         Called when a channel is created
         :param channel: :class:`TextChannel` or :class:`VoiceChannel` object
@@ -137,8 +139,8 @@ class BaseClient(DiscordUser, DiscordChannel, DiscordGuild, BaseRequest):
 
     @staticmethod
     async def on_channel_update(
-            before: Union[TextChannel, VoiceChannel] = None,
-            after: Union[TextChannel, VoiceChannel] = None,
+        before: Union[TextChannel, VoiceChannel] = None,
+        after: Union[TextChannel, VoiceChannel] = None,
     ) -> Tuple[Union[TextChannel, VoiceChannel], Union[TextChannel, VoiceChannel]]:
         """
         Called when a channel is updated
@@ -158,7 +160,9 @@ class BaseClient(DiscordUser, DiscordChannel, DiscordGuild, BaseRequest):
         return message
 
     @staticmethod
-    async def on_message_update(before: Message, after: Message) -> Tuple["Message", "Message"]:
+    async def on_message_update(
+        before: Message, after: Message
+    ) -> Tuple["Message", "Message"]:
         """
         Called when a message is updated
         :param before: :class:`Message` object before update
@@ -168,7 +172,9 @@ class BaseClient(DiscordUser, DiscordChannel, DiscordGuild, BaseRequest):
         return before, after
 
     @staticmethod
-    async def on_message_delete(message: Union["Message", Dict[str, Any]]) -> Union["Message", Dict[str, Any]]:
+    async def on_message_delete(
+        message: Union["Message", Dict[str, Any]]
+    ) -> Union["Message", Dict[str, Any]]:
         """
         Called when a message is deleted
         :param message: :class:`Message` object from :class:`MessageCache`

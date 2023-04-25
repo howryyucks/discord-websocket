@@ -7,10 +7,21 @@ source code: https://github.com/howryyucks/discord-websocket
 """
 from datetime import datetime
 from enum import StrEnum
-from typing import Optional, Union, Callable, overload, Type, Generic, TypeVar, Any, Dict, List
+from typing import (
+    Optional,
+    Union,
+    Callable,
+    overload,
+    Type,
+    Generic,
+    TypeVar,
+    Any,
+    Dict,
+    List,
+)
 
-T = TypeVar('T')
-T_co = TypeVar('T_co', covariant=True)
+T = TypeVar("T")
+T_co = TypeVar("T_co", covariant=True)
 
 flags: Dict[int, str] = {
     1 << 0: "Staff Team",
@@ -28,7 +39,7 @@ flags: Dict[int, str] = {
     1 << 17: "Early Verified Bot Developer",
     1 << 18: "Moderator Programs Alumni",
     1 << 19: "Bot uses only http interactions",
-    1 << 22: "Active Developer"
+    1 << 22: "Active Developer",
 }
 
 
@@ -42,7 +53,7 @@ class CachedSlotProperty(Generic[T, T_co]):
     def __init__(self, name: str, function: Callable[[T], T_co]) -> None:
         self.name = name
         self.function = function
-        self.__doc__ = getattr(function, '__doc__')
+        self.__doc__ = getattr(function, "__doc__")
 
     @overload
     def __get__(self, instance: None, owner: Type[T]) -> "CachedSlotProperty[T, T_co]":
@@ -64,7 +75,9 @@ class CachedSlotProperty(Generic[T, T_co]):
             return value
 
 
-def cached_slot_property(name: str) -> Callable[[Callable[[T], T_co]], CachedSlotProperty[T, T_co]]:
+def cached_slot_property(
+    name: str,
+) -> Callable[[Callable[[T], T_co]], CachedSlotProperty[T, T_co]]:
     def decorator(func: Callable[[T], T_co]) -> CachedSlotProperty[T, T_co]:
         return CachedSlotProperty(name, func)
 
@@ -77,7 +90,7 @@ def get_flag(public_flag: int) -> str:
         if (key and public_flag) == key:
             flags_all.append(value)
         flags_all.append(value)
-    return ', '.join(flags_all)
+    return ", ".join(flags_all)
 
 
 def get_avatar_url(user_id: int, avatar: Optional[str]) -> Optional[str]:
@@ -90,7 +103,9 @@ def get_avatar_url(user_id: int, avatar: Optional[str]) -> Optional[str]:
     return avatar
 
 
-def guild_member_avatar_url(guild_id: int, user_id: int, avatar: Optional[str]) -> Optional[str]:
+def guild_member_avatar_url(
+    guild_id: int, user_id: int, avatar: Optional[str]
+) -> Optional[str]:
     avatar = (
         f"https://cdn.discordapp.com/guilds/{guild_id}/users/{user_id}/avatars/{avatar}."
         f"{'gif' if str(user_id).startswith('a_') else 'png'}"
@@ -149,8 +164,8 @@ def get_banner_url(user_id: int, banner: Optional[str]) -> Optional[str]:
 
 
 def get_member_create_date(
-        user_id: Union[str, int],
-        to_string: str = "%d.%m.%Y %H:%M:%S",
+    user_id: Union[str, int],
+    to_string: str = "%d.%m.%Y %H:%M:%S",
 ) -> Optional[str]:
     if user_id == -1:
         return None
@@ -173,13 +188,13 @@ def has_nitro(premium_type: Optional[int]) -> str:
 
 
 def from_timestamp_to_humanly(
-        timestamp: Union[float, int], to_string: str = "%d.%m.%Y %H:%M:%S"
+    timestamp: Union[float, int], to_string: str = "%d.%m.%Y %H:%M:%S"
 ) -> str:
     return datetime.fromtimestamp(timestamp / 1000.0).strftime(to_string)
 
 
 def from_iso_format_to_humanly(
-        iso: str, to_string: str = "%d.%m.%Y %H:%M:%S"
+    iso: str, to_string: str = "%d.%m.%Y %H:%M:%S"
 ) -> Optional[str]:
     try:
         date = datetime.fromisoformat(iso)

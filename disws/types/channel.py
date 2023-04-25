@@ -97,9 +97,14 @@ class ForumChannel(_BaseGuildChannel):
 
 
 GuildChannel: Type[Any] = Union[
-    TextChannel, NewsChannel, VoiceChannel,
-    CategoryChannel, StageChannel, ThreadChannel,
-    ForumChannel]
+    TextChannel,
+    NewsChannel,
+    VoiceChannel,
+    CategoryChannel,
+    StageChannel,
+    ThreadChannel,
+    ForumChannel,
+]
 
 
 class DMChannel(_BaseChannel):

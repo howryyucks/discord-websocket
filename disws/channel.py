@@ -9,18 +9,33 @@ source code: https://github.com/howryyucks/discord-websocket
 from typing import Any, Dict, List, Literal, Optional, Self, Union
 
 from disws.types import (
-    PermissionOverwrite, Snowflake, TextChannel as MsgTextChannel, ThreadArchiveDuration,
+    PermissionOverwrite,
+    Snowflake,
+    TextChannel as MsgTextChannel,
+    ThreadArchiveDuration,
     VideoQualityMode,
-    VoiceChannel as MsgVoiceChannel
+    VoiceChannel as MsgVoiceChannel,
 )
 from .guild import Guild
 
 
 class TextChannel:
     __slots__ = (
-        "id", "name", "guild", "guild_id", "position", "permission_overwrites",
-        "nsfw", "guild", "parent_id", "topic", "last_message_id", "last_pin_timestamp",
-        "rate_limit_per_user", "default_auto_archive_duration", "type",
+        "id",
+        "name",
+        "guild",
+        "guild_id",
+        "position",
+        "permission_overwrites",
+        "nsfw",
+        "guild",
+        "parent_id",
+        "topic",
+        "last_message_id",
+        "last_pin_timestamp",
+        "rate_limit_per_user",
+        "default_auto_archive_duration",
+        "type",
     )
 
     def __init__(self, data: MsgTextChannel) -> None:
@@ -29,16 +44,22 @@ class TextChannel:
         self.guild_id: int = int(data["guild_id"]) if data.get("guild_id") else None
         self.guild: Optional[Guild] = (data["guild"]) if data.get("guild") else None
         self.position: int = data.get("position", 0)
-        self.permission_overwrites: List[PermissionOverwrite] = data.get("permission_overwrites", [])
+        self.permission_overwrites: List[PermissionOverwrite] = data.get(
+            "permission_overwrites", []
+        )
         self.nsfw: bool = data.get("nsfw", False)
-        self.parent_id: Union[Optional[str], Optional[int]] = data.get("parent_id", None)
+        self.parent_id: Union[Optional[str], Optional[int]] = data.get(
+            "parent_id", None
+        )
         self.topic: Optional[str] = data.get("topic", None)
-        self.last_message_id: Union[str, Optional[int]] = data.get("last_message_id", None)
+        self.last_message_id: Union[str, Optional[int]] = data.get(
+            "last_message_id", None
+        )
         self.last_pin_timestamp: Optional[str] = data.get("last_pin_timestamp", None)
         self.rate_limit_per_user: int = data.get("rate_limit_per_user", 0)
-        self.default_auto_archive_duration: Optional[
-            ThreadArchiveDuration
-        ] = data.get("default_auto_archive_duration", None)
+        self.default_auto_archive_duration: Optional[ThreadArchiveDuration] = data.get(
+            "default_auto_archive_duration", None
+        )
         self.type: Literal[0] = data.get("type", 0)
 
     def __repr__(self) -> str:
@@ -66,9 +87,22 @@ class TextChannel:
 
 class VoiceChannel:
     __slots__ = (
-        "id", "name", "guild_id", "position", "permission_overwrites", "parent_id",
-        "topic", "last_message_id", "last_pin_timestamp", "rate_limit_per_user",
-        "default_auto_archive_duration", "type", "bitrate", "user_limit", "rtc_region", "video_quality_mode",
+        "id",
+        "name",
+        "guild_id",
+        "position",
+        "permission_overwrites",
+        "parent_id",
+        "topic",
+        "last_message_id",
+        "last_pin_timestamp",
+        "rate_limit_per_user",
+        "default_auto_archive_duration",
+        "type",
+        "bitrate",
+        "user_limit",
+        "rtc_region",
+        "video_quality_mode",
     )
 
     def __init__(self, data: MsgVoiceChannel) -> None:
@@ -76,20 +110,24 @@ class VoiceChannel:
         self.name: str = data["name"]
         self.guild_id: int = int(data["guild_id"])
         self.position: int = data["position"]
-        self.permission_overwrites: List[PermissionOverwrite] = data["permission_overwrites"]
+        self.permission_overwrites: List[PermissionOverwrite] = data[
+            "permission_overwrites"
+        ]
         self.parent_id: Optional[Snowflake] = data.get("parent_id", None)
         self.topic: str = data["topic"]
         self.last_message_id: Optional[Snowflake] = data.get("last_message_id", None)
         self.last_pin_timestamp: Optional[str] = data.get("last_pin_timestamp", None)
         self.rate_limit_per_user: Optional[int] = data.get("rate_limit_per_user", None)
-        self.default_auto_archive_duration: Optional[
-            ThreadArchiveDuration
-        ] = data.get("default_auto_archive_duration", None)
+        self.default_auto_archive_duration: Optional[ThreadArchiveDuration] = data.get(
+            "default_auto_archive_duration", None
+        )
         self.type: Literal[2] = data["type"]
         self.bitrate: int = data.get("bitrate", 0)
         self.user_limit: Optional[int] = data.get("user_limit", 0)
         self.rtc_region: Optional[str] = data.get("rtc_region")
-        self.video_quality_mode: Optional[VideoQualityMode] = data.get("video_quality_mode")
+        self.video_quality_mode: Optional[VideoQualityMode] = data.get(
+            "video_quality_mode"
+        )
 
     def __repr__(self) -> str:
         return f"<VoiceChannel id={self.id} name={self.name!r}>"
@@ -138,8 +176,7 @@ class ChannelCache:
         return self.__get_channel(channel_id)
 
     def add_channel(
-            self, channel_id: str,
-            channel: Union[TextChannel, VoiceChannel]
+        self, channel_id: str, channel: Union[TextChannel, VoiceChannel]
     ) -> Union[TextChannel, VoiceChannel]:
         self.channels[channel_id] = channel
         return channel
@@ -147,7 +184,9 @@ class ChannelCache:
     def remove_channel(self, channel_id: str) -> None:
         del self.channels[channel_id]
 
-    def edit_channel(self, channel_id: str, channel: Union[TextChannel, VoiceChannel]) -> None:
+    def edit_channel(
+        self, channel_id: str, channel: Union[TextChannel, VoiceChannel]
+    ) -> None:
         self.channels[channel_id] = channel
 
     def clear(self) -> None:
