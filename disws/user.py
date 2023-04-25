@@ -87,8 +87,10 @@ class Me(BaseUser):
         self._full_update(data)
 
     def __repr__(self) -> str:
-        return f"<id={self.id}, name={self.name!r}, " \
-               f"discriminator={self.discriminator!r} locale={self.locale}>"
+        return (
+            f"<id={self.id}, name={self.name!r}, "
+            f"discriminator={self.discriminator!r} locale={self.locale}>"
+        )
 
     def __str__(self) -> str:
         return f"{self.name}#{self.discriminator}"
