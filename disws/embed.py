@@ -9,17 +9,33 @@ source code: https://github.com/howryyucks/discord-websocket
 from typing import Any, Optional, Dict, Union, List
 
 from disws.types import (
-    Embed as MsgEmbed, FooterEmbed, ImageEmbed,
-    ThumbnailEmbed, VideoEmbed, ProviderEmbed,
-    EmbedAuthor, EmbedField
+    Embed as MsgEmbed,
+    FooterEmbed,
+    ImageEmbed,
+    ThumbnailEmbed,
+    VideoEmbed,
+    ProviderEmbed,
+    EmbedAuthor,
+    EmbedField,
 )
 from disws.utils import from_iso_format_to_humanly
 
 
 class Embed:
     __slots__ = (
-        "title", "type", "description", "url", "color", "timestamp",
-        "footer", "image", "thumbnail", "video", "provider", "author", "fields",
+        "title",
+        "type",
+        "description",
+        "url",
+        "color",
+        "timestamp",
+        "footer",
+        "image",
+        "thumbnail",
+        "video",
+        "provider",
+        "author",
+        "fields",
     )
 
     def __init__(self, data: MsgEmbed) -> None:
@@ -28,9 +44,11 @@ class Embed:
         self.title: Optional[str] = data.get("title", None)
         self.description: Optional[str] = data.get("description", None)
         self.url: str = data.get("url")
-        self.timestamp: Optional[str] = from_iso_format_to_humanly(
-            data["timestamp"]
-        ) if data.get("timestamp", None) else None
+        self.timestamp: Optional[str] = (
+            from_iso_format_to_humanly(data["timestamp"])
+            if data.get("timestamp", None)
+            else None
+        )
         self.footer: Optional[FooterEmbed] = data.get("footer", None)
         self.image: Optional[ImageEmbed] = data.get("image", None)
         self.thumbnail: Optional[ThumbnailEmbed] = data.get("thumbnail", None)

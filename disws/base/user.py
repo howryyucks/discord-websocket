@@ -30,7 +30,9 @@ class DiscordUser(BaseRequest):
                 r_json = await response.json()
                 return Me(r_json)
             else:
-                raise HTTPException(status_code=response.status, text=await response.json())
+                raise HTTPException(
+                    status_code=response.status, text=await response.json()
+                )
 
     async def get_user(self, user_id: int) -> Member:
         """
@@ -39,9 +41,12 @@ class DiscordUser(BaseRequest):
         :return: :class:`Member` object
         """
         async with self:
-            response = await self.send_request(f"/api/v10/users/{user_id}", method="GET",
-                                               headers=self.headers)
+            response = await self.send_request(
+                f"/api/v10/users/{user_id}", method="GET", headers=self.headers
+            )
             if response.status == 200:
                 return Member(await response.json())
             else:
-                raise HTTPException(status_code=response.status, text=await response.json())
+                raise HTTPException(
+                    status_code=response.status, text=await response.json()
+                )

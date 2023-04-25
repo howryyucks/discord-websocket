@@ -38,32 +38,38 @@ class DiscordChannel(BaseRequest):
             if response.status == 200:
                 response = await response.json()
                 if response.get("guild_id"):
-                    guild = await self.guild.get_guild(response["guild_id"], headers=self.headers, to_dict=True)
+                    guild = await self.guild.get_guild(
+                        response["guild_id"], headers=self.headers, to_dict=True
+                    )
                     response["guild"] = guild
                 return TextChannel(response)
 
             else:
-                raise HTTPException(status_code=response.status, text=await response.json())
+                raise HTTPException(
+                    status_code=response.status, text=await response.json()
+                )
 
     @overload
     async def send_message(
-            self,
-            channel: Union[TextChannel, str, int],
-            *,
-            content: Optional[str] = None,
-            silent: Optional[bool] = False,
-            embeds: Optional[List[Embed]] = None,
-            attachments: Optional[List[File]] = None
+        self,
+        channel: Union[TextChannel, str, int],
+        *,
+        content: Optional[str] = None,
+        silent: Optional[bool] = False,
+        embeds: Optional[List[Embed]] = None,
+        attachments: Optional[List[File]] = None,
     ) -> Optional[Message]:
         """
         Send a message to a channel.
-        :param channel: Channel ID to send the message (type: :class:`TextChannel`, :class:`str` or :class:`int`)
+        :param channel: Channel ID to send the message
+            (type: :class:`TextChannel`, :class:`str` or :class:`int`)
         :param content: Message content
         :param silent: Send message silently (default: False)
         :param embeds: List of :class:`disws.Embed` objects
         :param attachments: List of :class:`disws.File` object
 
-        :raise HTTPException: If the request fails for any reason program calls :class:`disws.base.errors.HTTPException`
+        :raise HTTPException: If the request fails for
+            any reason program calls :class:`disws.base.errors.HTTPException`
         :raise ValueError: if the request has too many attachments (max 10)
         :return: Created :class:`Message` object
         """
@@ -71,55 +77,58 @@ class DiscordChannel(BaseRequest):
 
     @overload
     async def send_message(
-            self,
-            channel: Union[TextChannel, str, int],
-            *,
-            content: Optional[str] = None,
-            silent: Optional[bool] = False,
-            embeds: Optional[List[Embed]] = None,
-            attachments: Optional[File] = None
+        self,
+        channel: Union[TextChannel, str, int],
+        *,
+        content: Optional[str] = None,
+        silent: Optional[bool] = False,
+        embeds: Optional[List[Embed]] = None,
+        attachments: Optional[File] = None,
     ) -> Optional[Message]:
         """
         Send a message to a channel.
-        :param channel: Channel ID to send the message (type: :class:`TextChannel`, :class:`str` or :class:`int`)
+        :param channel: Channel ID to send the message
+            (type: :class:`TextChannel`, :class:`str` or :class:`int`)
         :param content: Message content
         :param silent: Send message silently (default: False)
         :param embeds: List of :class:`disws.Embed` objects
         :param attachments: Attachment in :class:`disws.File` object
 
-        :raise HTTPException: If the request fails for any reason program calls :class:`disws.base.errors.HTTPException`
+        :raise HTTPException: If the request fails for
+            any reason program calls :class:`disws.base.errors.HTTPException`
         :raise ValueError: if the request has too many attachments (max 10)
         :return: Created :class:`Message` object
         """
         ...
 
     async def send_message(
-            self, channel: Union[TextChannel, str, int],
-            *,
-            content: Optional[str] = None,
-            silent: Optional[bool] = False,
-            **kwargs,
+        self,
+        channel: Union[TextChannel, str, int],
+        *,
+        content: Optional[str] = None,
+        silent: Optional[bool] = False,
+        **kwargs,
     ) -> Optional[Message]:
         """
         Send a message to a channel.
-        :param channel: Channel ID to send the message (type: :class:`TextChannel`, :class:`str` or :class:`int`)
+        :param channel: Channel ID to send the message
+            (type: :class:`TextChannel`, :class:`str` or :class:`int`)
         :param content: Message content
         :param silent: Send message silently (default: False)
 
-        :raise HTTPException: If the request fails for any reason program calls :class:`disws.base.errors.HTTPException`
+        :raise HTTPException: If the request fails for
+            any reason program calls :class:`disws.base.errors.HTTPException`
         :raise ValueError: if the request has too many attachments (max 10)
         :return: Created :class:`Message` object
         """
 
         embed = kwargs.get("embeds", None)
-        attachments = kwargs.get('attachments', None)
+        attachments = kwargs.get("attachments", None)
 
         if embed:
             embeds = [
-                embed.to_dict()
-                if getattr(embed, "to_dict", None)
-                else embed
-                for embed in kwargs['embeds']
+                embed.to_dict() if getattr(embed, "to_dict", None) else embed
+                for embed in kwargs["embeds"]
                 if isinstance(embed, Embed)
             ]
         else:
@@ -128,29 +137,35 @@ class DiscordChannel(BaseRequest):
         channel_id = channel.id if isinstance(channel, TextChannel) else channel
         data = FormData()
         payload = {
-            'flags': 4096 if silent else 0,
-            'content': content if content else '',
-            'embeds': embeds,
+            "flags": 4096 if silent else 0,
+            "content": content if content else "",
+            "embeds": embeds,
         }
 
-        data.add_field('payload_json', json.dumps(payload))
+        data.add_field("payload_json", json.dumps(payload))
 
-        if payload.get('embeds', None) is not None:
-            data.add_field('embeds', json.dumps(payload['embeds']))
+        if payload.get("embeds", None) is not None:
+            data.add_field("embeds", json.dumps(payload["embeds"]))
 
         if attachments:
             if not isinstance(attachments, list):
-                data.add_field(f'files[0]', attachments.fp,  # type: ignore
-                               filename=attachments.filename,  # type: ignore
-                               content_type='application/octet-stream')
+                data.add_field(
+                    f"files[0]",
+                    attachments.fp,  # type: ignore
+                    filename=attachments.filename,  # type: ignore
+                    content_type="application/octet-stream",
+                )
             else:
                 if len(attachments) >= 11:
                     raise ValueError("Too many attachments (max 10)")
 
                 for n, attachment in enumerate(attachments):
-                    data.add_field(f'files[{n}]', attachment.fp,
-                                   filename=attachment.filename,
-                                   content_type='application/octet-stream')
+                    data.add_field(
+                        f"files[{n}]",
+                        attachment.fp,
+                        filename=attachment.filename,
+                        content_type="application/octet-stream",
+                    )
 
         async with self:
             response = await self.send_request(
@@ -162,4 +177,6 @@ class DiscordChannel(BaseRequest):
             if response.status == 200:
                 return Message(await response.json())
             else:
-                raise HTTPException(status_code=response.status, text=await response.json())
+                raise HTTPException(
+                    status_code=response.status, text=await response.json()
+                )

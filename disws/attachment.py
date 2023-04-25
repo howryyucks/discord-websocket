@@ -20,8 +20,16 @@ from .utils import cached_slot_property
 
 class Attachment:
     __slots__ = (
-        "id", "filename", "url", "content_type", "height", "width", "proxy_url",
-        "description", "ephemeral", "size",
+        "id",
+        "filename",
+        "url",
+        "content_type",
+        "height",
+        "width",
+        "proxy_url",
+        "description",
+        "ephemeral",
+        "size",
     )
 
     def __init__(self, *, data: MsgAttachment) -> None:
@@ -52,12 +60,15 @@ class Attachment:
                 if response.status == 200:
                     return await response.read()
                 else:
-                    raise HTTPException(status_code=response.status, text="Attachment not found")
+                    raise HTTPException(
+                        status_code=response.status, text="Attachment not found"
+                    )
 
     async def save(
-            self, file_path: Union[io.BufferedIOBase, str],
-            seek: bool = True,
-            from_cache: bool = False
+        self,
+        file_path: Union[io.BufferedIOBase, str],
+        seek: bool = True,
+        from_cache: bool = False,
     ) -> int:
         """
         Save the attachment into a file/PathLike/BufferedIOBase.
@@ -107,15 +118,25 @@ class File:
 
     Link: https://github.com/dolfies/discord.py-self
     """
-    __slots__ = ('fp', '_filename', 'spoiler', 'description', '_original_pos', '_owner', '_closer', '_cs_md5')
+
+    __slots__ = (
+        "fp",
+        "_filename",
+        "spoiler",
+        "description",
+        "_original_pos",
+        "_owner",
+        "_closer",
+        "_cs_md5",
+    )
 
     def __init__(
-            self,
-            fp: Union[str, bytes, os.PathLike[Any], io.BufferedIOBase, io.StringIO],
-            filename: Optional[str] = None,
-            *,
-            spoiler: bool = False,
-            description: Optional[str] = None,
+        self,
+        fp: Union[str, bytes, os.PathLike[Any], io.BufferedIOBase, io.StringIO],
+        filename: Optional[str] = None,
+        *,
+        spoiler: bool = False,
+        description: Optional[str] = None,
     ):
         """
         Helper class for uploading attachments into Discord.
@@ -134,7 +155,7 @@ class File:
             self._original_pos: int = fp.tell()
             self._owner: bool = False
         else:
-            self.fp: io = open(fp, 'rb')
+            self.fp: io = open(fp, "rb")
             self._original_pos: int = 0
             self._owner: bool = True
 
@@ -145,7 +166,7 @@ class File:
             if isinstance(fp, str):
                 _, filename = os.path.split(fp)
             else:
-                filename = getattr(fp, 'name', 'untitled')
+                filename = getattr(fp, "name", "untitled")
 
         self._filename, filename_spoiler = self._strip_spoiler(filename)
         if spoiler is False:
@@ -157,23 +178,23 @@ class File:
     @staticmethod
     def _strip_spoiler(filename: str) -> Tuple[str, bool]:
         stripped = filename
-        if stripped.startswith('SPOILER_'):
+        if stripped.startswith("SPOILER_"):
             stripped = stripped[8:]
         spoiler = stripped != filename
         return stripped, spoiler
 
     @property
     def filename(self) -> str:
-        return 'SPOILER_' + self._filename if self.spoiler else self._filename
+        return "SPOILER_" + self._filename if self.spoiler else self._filename
 
     @filename.setter
     def filename(self, value: str) -> None:
         self._filename, self.spoiler = self._strip_spoiler(value)
 
-    @cached_slot_property('_cs_md5')
+    @cached_slot_property("_cs_md5")
     def md5(self) -> str:
         try:
-            return b64encode(md5(self.fp.read()).digest()).decode('utf-8')
+            return b64encode(md5(self.fp.read()).digest()).decode("utf-8")
         finally:
             self.reset()
 
@@ -188,11 +209,11 @@ class File:
 
     def to_dict(self, index: int) -> Dict[str, Any]:
         payload = {
-            'id': index,
-            'filename': self.filename,
+            "id": index,
+            "filename": self.filename,
         }
 
         if self.description is not None:
-            payload['description'] = self.description
+            payload["description"] = self.description
 
         return payload

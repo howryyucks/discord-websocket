@@ -70,16 +70,18 @@ class Client(BaseClient):
             raise DiscordTokenError(text="Token is required.")
 
         if re.search(self.__pattern_token, token) is None:
-            raise DiscordTokenError(text=f"\"{token}\" is not a discord token.")
+            raise DiscordTokenError(text=f'"{token}" is not a discord token.')
 
         super().__init__(f"Bot {token}" if bot else token)
         self.bot = bot
 
-        self._api_url = f"wss://gateway.discord.gg/?v={api_num}&encoding=json&compress=zlib-stream"
+        self._api_url = (
+            f"wss://gateway.discord.gg/?v={api_num}&encoding=json&compress=zlib-stream"
+        )
         self.token = f"Bot {token}" if self.bot else token
 
         self.zlib = zlib.decompressobj()
-        self.zlib_suffix = b'\x00\x00\xff\xff'
+        self.zlib_suffix = b"\x00\x00\xff\xff"
 
         self.ws = None
 
@@ -113,7 +115,7 @@ class Client(BaseClient):
 
         if func:
             if not asyncio.iscoroutinefunction(func):
-                raise ValueError(f"function \"{func.__name__}\" must be a coroutine.")
+                raise ValueError(f'function "{func.__name__}" must be a coroutine.')
             self.loop.create_task(func())
 
         self.work = True
@@ -208,9 +210,9 @@ class Client(BaseClient):
             item = self.zlib.decompress(value)
             item = json.loads(item)
 
-            op_code = item.get('op')  # Op code
-            data = item.get('d')  # Data
-            event = item.get('t')  # The event
+            op_code = item.get("op")  # Op code
+            data = item.get("d")  # Data
+            event = item.get("t")  # The event
 
             if op_code == self.RECONNECT:
                 logging.info(f"OP Code: {op_code}. Reconnecting...")
@@ -225,7 +227,7 @@ class Client(BaseClient):
                     await self.close()
 
             elif op_code == self.HELLO:
-                interval = data['heartbeat_interval'] / 1000.0
+                interval = data["heartbeat_interval"] / 1000.0
                 identify_dict = self._gen_payload()
                 await self.send_ws_message(message=identify_dict)
                 self.loop.create_task(self.heartbeat(interval))
@@ -250,13 +252,15 @@ class Client(BaseClient):
                     if member:
                         guild = {
                             "guild": (
-                                    self.guild_cache.try_get(str(data["guild_id"]))
-                                    or
-                                    self.guild_cache.add_guild(str(data["guild_id"]), await self.get_guild(
+                                self.guild_cache.try_get(str(data["guild_id"]))
+                                or self.guild_cache.add_guild(
+                                    str(data["guild_id"]),
+                                    await self.get_guild(
                                         data["guild_id"],
                                         headers=self.headers,
                                         to_dict=True,
-                                    ))
+                                    ),
+                                )
                             ),
                             "nick": member.get("nick", None),
                             "avatar": member.get("avatar", None),
@@ -268,7 +272,9 @@ class Client(BaseClient):
                             "flags": member.get("flags", 0),
                             "pending": member.get("pending", False),
                             "permissions": member.get("permissions", None),
-                            "communication_disabled_until": member.get("communication_disabled_until", None),
+                            "communication_disabled_until": member.get(
+                                "communication_disabled_until", None
+                            ),
                         }
 
                 if event == EventStatus.CHANNEL_CREATE:
@@ -292,7 +298,9 @@ class Client(BaseClient):
                         else None
                     )
                     print(before, after)
-                    self.loop.create_task(self.trigger("on_channel_update", before, after))
+                    self.loop.create_task(
+                        self.trigger("on_channel_update", before, after)
+                    )
 
                 if event == EventStatus.MESSAGE_CREATE:
                     result = Message.from_dict(data, guild_data=guild)
@@ -300,12 +308,18 @@ class Client(BaseClient):
                     self.loop.create_task(self.trigger("on_message_create", result))
 
                 if event == EventStatus.MESSAGE_DELETE:
-                    result = self.message_cache.mark_message_as_deleted(data["id"], convert_to_dict=False)
+                    result = self.message_cache.mark_message_as_deleted(
+                        data["id"], convert_to_dict=False
+                    )
                     self.loop.create_task(self.trigger("on_message_delete", result))
 
                 if event == EventStatus.MESSAGE_UPDATE:
-                    before, after = self.message_cache.mark_message_as_edited(data["id"], data, guild)
-                    self.loop.create_task(self.trigger("on_message_edit", before, after))
+                    before, after = self.message_cache.mark_message_as_edited(
+                        data["id"], data, guild
+                    )
+                    self.loop.create_task(
+                        self.trigger("on_message_edit", before, after)
+                    )
 
     async def connect_to_ws(self):
         """
@@ -315,9 +329,11 @@ class Client(BaseClient):
         if self.work:
             logging.info("Connecting to WebSocket...")
             try:
-                self.ws = await websockets.connect(self._api_url, origin="https://discord.com")
+                self.ws = await websockets.connect(
+                    self._api_url, origin="https://discord.com"
+                )
                 self.work = True
-            except (Exception, BaseException) as e:
+            except (Exception, BaseException):
                 raise Exception
         else:
             logging.info("Exiting...")

@@ -14,13 +14,24 @@ from .user import Member
 
 
 class Emoji:
-    __slots__ = ("id", "name", "roles", "user", "require_colons", "managed", "animated", "available")
+    __slots__ = (
+        "id",
+        "name",
+        "roles",
+        "user",
+        "require_colons",
+        "managed",
+        "animated",
+        "available",
+    )
 
     def __init__(self, data: MsgEmoji):
         self.id: int = int(data["id"])
         self.name: Optional[str] = data.get("name", None)
         self.roles: Optional[List[Role]] = data.get("roles", None)
-        self.user: Optional[Member] = Member(data["user"]) if data.get("user", None) else None
+        self.user: Optional[Member] = (
+            Member(data["user"]) if data.get("user", None) else None
+        )
         self.require_colons: bool = data.get("require_colons", False)
         self.managed: bool = data.get("managed", False)
         self.animated: bool = data.get("animated", False)
@@ -36,7 +47,9 @@ class Emoji:
         return {
             "id": self.id,
             "name": self.name,
-            "roles": [role.to_dict() for role in self.roles if isinstance(role, Role)] if self.roles else None,
+            "roles": [role.to_dict() for role in self.roles if isinstance(role, Role)]
+            if self.roles
+            else None,
             "user": self.user.to_dict() if self.user else None,
             "require_colons": self.require_colons,
             "managed": self.managed,

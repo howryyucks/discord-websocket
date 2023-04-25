@@ -15,12 +15,22 @@ class Intents:
     """
 
     intents = [
-        'GUILDS', 'GUILD_MEMBERS', 'GUILD_BANS',
-        'GUILD_EMOJIS_AND_STICKERS', 'GUILD_INTEGRATIONS', 'GUILD_WEBHOOKS',
-        'GUILD_INVITES', 'GUILD_VOICE_STATES', 'GUILD_PRESENCES',
-        'GUILD_MESSAGES', 'GUILD_MESSAGE_REACTIONS', 'GUILD_MESSAGE_TYPING',
-        'DIRECT_MESSAGES', 'DIRECT_MESSAGE_REACTIONS', 'GUILD_SCHEDULED_EVENTS',
-        'GUILD_SCHEDULED_EVENTS'
+        "GUILDS",
+        "GUILD_MEMBERS",
+        "GUILD_BANS",
+        "GUILD_EMOJIS_AND_STICKERS",
+        "GUILD_INTEGRATIONS",
+        "GUILD_WEBHOOKS",
+        "GUILD_INVITES",
+        "GUILD_VOICE_STATES",
+        "GUILD_PRESENCES",
+        "GUILD_MESSAGES",
+        "GUILD_MESSAGE_REACTIONS",
+        "GUILD_MESSAGE_TYPING",
+        "DIRECT_MESSAGES",
+        "DIRECT_MESSAGE_REACTIONS",
+        "GUILD_SCHEDULED_EVENTS",
+        "GUILD_SCHEDULED_EVENTS",
     ]
 
     @classmethod
@@ -31,7 +41,7 @@ class Intents:
         for num, role in enumerate(self.intents):
             if role == intent_name:
                 return 1 << num
-        raise ValueError(f'Intent {intent_name} not found!')
+        raise ValueError(f"Intent {intent_name} not found!")
 
     def get_intents(self, intents_list: List[str] = None) -> int:
         if not intents_list:

@@ -19,43 +19,81 @@ from .user import Member
 
 class Message:
     __slots__ = (
-        "id", "__guild_data", "timestamp", "pinned",
-        "tts", "referenced_message", "guild", "mentions",
-        "mention_roles", "mention_everyone", "embeds", "edited_timestamp",
-        "content", "components", "attachments", "channel_id", "author", "guild_id",
+        "id",
+        "__guild_data",
+        "timestamp",
+        "pinned",
+        "tts",
+        "referenced_message",
+        "guild",
+        "mentions",
+        "mention_roles",
+        "mention_everyone",
+        "embeds",
+        "edited_timestamp",
+        "content",
+        "components",
+        "attachments",
+        "channel_id",
+        "author",
+        "guild_id",
     )
 
     def __init__(self, data: Msg, guild_data: Dict[str, Any] = None) -> None:
         self.id: int = int(data["id"])
         self.__guild_data = guild_data or {}
-        self.timestamp: Optional[float] = datetime.fromisoformat(data["timestamp"]).timestamp() \
-            if data.get("timestamp", None) else None
+        self.timestamp: Optional[float] = (
+            datetime.fromisoformat(data["timestamp"]).timestamp()
+            if data.get("timestamp", None)
+            else None
+        )
         self.pinned: bool = data.get("pinned", False)
         self.tts: bool = data.get("tts", False)
-        self.referenced_message: Optional[Message] = data.get("referenced_message", None)
+        self.referenced_message: Optional[Message] = data.get(
+            "referenced_message", None
+        )
         self.mention_roles: Union[List, None] = data.get("mention_roles", None)
         self.mention_everyone: bool = data.get("mention_everyone", False)
-        self.embeds: Optional[List[Embed]] = [
-            Embed(embed) for embed in data["embeds"]
-        ] if data.get("embeds", None) else None
-        self.edited_timestamp: Union[datetime, str, None] = from_iso_format_to_humanly(
-            data["edited_timestamp"]) if data.get("edited_timestamp", None) else None
+        self.embeds: Optional[List[Embed]] = (
+            [Embed(embed) for embed in data["embeds"]]
+            if data.get("embeds", None)
+            else None
+        )
+        self.edited_timestamp: Union[datetime, str, None] = (
+            from_iso_format_to_humanly(data["edited_timestamp"])
+            if data.get("edited_timestamp", None)
+            else None
+        )
         self.content: str = data.get("content", "")
-        self.guild: Optional[Guild] = Guild(
-            self.__guild_data["guild"]
-        ) if self.__guild_data.get("guild", None) else None
-        self.mentions = self.fill_mentions(data["mentions"]) if data.get("mentions", None) else []
+        self.guild: Optional[Guild] = (
+            Guild(self.__guild_data["guild"])
+            if self.__guild_data.get("guild", None)
+            else None
+        )
+        self.mentions = (
+            self.fill_mentions(data["mentions"]) if data.get("mentions", None) else []
+        )
         self.components: Union[List, None] = data.get("components", None)
-        self.attachments: Union[List[Attachment], None] = [
-            Attachment(data=attachment) for attachment in data["attachments"]
-        ] if data.get("attachments", None) else None
-        self.channel_id: Optional[int] = int(data["channel_id"]) if data.get("channel_id", None) else None
-        self.author: Optional[Member] = Member(data["author"]) if data.get("author", None) else None
-        self.guild_id: Optional[int] = int(data["guild_id"]) if data.get("guild_id", None) else None
+        self.attachments: Union[List[Attachment], None] = (
+            [Attachment(data=attachment) for attachment in data["attachments"]]
+            if data.get("attachments", None)
+            else None
+        )
+        self.channel_id: Optional[int] = (
+            int(data["channel_id"]) if data.get("channel_id", None) else None
+        )
+        self.author: Optional[Member] = (
+            Member(data["author"]) if data.get("author", None) else None
+        )
+        self.guild_id: Optional[int] = (
+            int(data["guild_id"]) if data.get("guild_id", None) else None
+        )
 
     def __repr__(self):
-        return f"<message={self.content!r}, id={self.id}>," \
-               f" attachments={len(self.attachments) if self.attachments else 0}>"
+        return (
+            f"<message={self.content!r}, id={self.id}>,"
+            f" attachments={len(self.attachments) if self.attachments else 0}>"
+        )
 
     def fill_mentions(self, data: List[Dict[Any, Any]]) -> List[Member]:
         mentions_list = []
@@ -69,7 +107,7 @@ class Message:
                         mention,
                         guild=self.guild.to_dict()
                         if getattr(self, "guild", None)
-                        else None
+                        else None,
                     )
                 )
         return mentions_list
@@ -90,7 +128,9 @@ class Message:
         if self.mentions:
             for mention in self.mentions:
                 mention = mention.to_dict()
-                mention["guild"] = self.guild.to_dict() if getattr(self, "guild", None) else None
+                mention["guild"] = (
+                    self.guild.to_dict() if getattr(self, "guild", None) else None
+                )
                 mentions_dict.append(mention)
 
         return {
@@ -127,7 +167,11 @@ class Message:
 
     @property
     def edited_at_formatted(self) -> str:
-        return from_iso_format_to_humanly(self.edited_timestamp) if self.edited_timestamp else "Not edited"
+        return (
+            from_iso_format_to_humanly(self.edited_timestamp)
+            if self.edited_timestamp
+            else "Not edited"
+        )
 
     @classmethod
     def from_dict(cls, data: Dict[Any, Any], guild_data: Dict[Any, Any] = None) -> Self:
@@ -141,7 +185,7 @@ class MessageCache:
         pass
 
     def add_message(
-            self, message_id: Union[int, str], message: Union[Dict[Any, Any], "Message"]
+        self, message_id: Union[int, str], message: Union[Dict[Any, Any], "Message"]
     ) -> Union[Dict[Any, Any]]:
         if isinstance(message, dict):
             self.messages[message_id] = Message.from_dict(message)
@@ -153,7 +197,7 @@ class MessageCache:
         return self.messages.get(message_id, None)
 
     def mark_message_as_deleted(
-            self, message_id: int, convert_to_dict: bool = False
+        self, message_id: int, convert_to_dict: bool = False
     ) -> Union[Dict[Any, Any], "Message"]:
         result: Union[Dict[Any, Any], "Message"] = self.messages.pop(message_id, None)
         if convert_to_dict:
@@ -161,12 +205,20 @@ class MessageCache:
         return result
 
     def mark_message_as_edited(
-            self, message_id: int, new_message: Union[Dict[Any, Any], Message], guild_data: Dict[Any, Any] = None
-    ) -> tuple[Union[Dict[Any, Any], Message, str], Union[Dict[Any, Any], Message, str]]:
+        self,
+        message_id: int,
+        new_message: Union[Dict[Any, Any], Message],
+        guild_data: Dict[Any, Any] = None,
+    ) -> tuple[
+        Union[Dict[Any, Any], Message, str], Union[Dict[Any, Any], Message, str]
+    ]:
         if self.messages.get(message_id, None) is not None:
             old_message = self.messages[message_id]
-            self.messages[message_id] = Message(new_message, guild_data=guild_data) \
-                if isinstance(new_message, dict) else new_message
+            self.messages[message_id] = (
+                Message(new_message, guild_data=guild_data)
+                if isinstance(new_message, dict)
+                else new_message
+            )
             self.messages[message_id].edited_timestamp = datetime.now().timestamp()
             return old_message, self.messages[message_id]
         else:

@@ -14,9 +14,17 @@ from disws.utils import get_role_icon_url
 
 class Role:
     __slots__ = (
-        "id", "name", "color", "hoist",
-        "icon", "unicode_emoji", "position",
-        "permissions", "managed", "mentionable", "tags"
+        "id",
+        "name",
+        "color",
+        "hoist",
+        "icon",
+        "unicode_emoji",
+        "position",
+        "permissions",
+        "managed",
+        "mentionable",
+        "tags",
     )
 
     def __init__(self, data: MsgRole) -> None:
@@ -27,7 +35,9 @@ class Role:
         self.icon: Optional[str] = data.get("icon", None)
         self.unicode_emoji: Optional[str] = data.get("unicode_emoji", None)
         self.position: int = int(data["position"])
-        self.permissions: Optional[int] = int(data["permissions"]) if data.get("permissions", None) else None
+        self.permissions: Optional[int] = (
+            int(data["permissions"]) if data.get("permissions", None) else None
+        )
         self.managed: bool = data.get("managed", False)
         self.mentionable: bool = data.get("mentionable", False)
         self.tags: Optional[RoleTags] = data.get("tags", None)

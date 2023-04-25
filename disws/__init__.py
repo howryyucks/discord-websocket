@@ -31,5 +31,5 @@ from .user import Me, Member, User
 logging.basicConfig(
     format="%(levelname)s: [%(asctime)s] %(module)s (line: %(lineno)d): %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
-    level=logging.INFO
+    level=logging.INFO,
 )

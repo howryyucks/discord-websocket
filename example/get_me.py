@@ -20,7 +20,9 @@ class MyClient(Client):
         print(message)
 
 
-client = MyClient(token="your_token", bot=True)  # or bot=False if you entered a user-token
+client = MyClient(
+    token="your_token", bot=True
+)  # or bot=False if you entered a user-token
 
 
 async def main() -> None:
