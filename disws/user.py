@@ -87,8 +87,10 @@ class Me(BaseUser):
         self._full_update(data)
 
     def __repr__(self) -> str:
-        return f"<id={self.id}, name={self.name!r}, " \
-               f"discriminator={self.discriminator!r} locale={self.locale}>"
+        return (
+            f"<id={self.id}, name={self.name!r}, "
+            f"discriminator={self.discriminator!r} locale={self.locale}>"
+        )
 
     def __str__(self) -> str:
         return f"{self.name}#{self.discriminator}"
@@ -199,8 +201,10 @@ class Member(BaseUser):
             return [role for role in self.guild.roles if str(role.id) in data]
 
     def __repr__(self) -> str:
-        return f"<id={self.id}, name={self.name!r}, " \
-               f"discriminator={self.discriminator!r}, created_at={self.created_at}>"
+        return (
+            f"<id={self.id}, name={self.name!r}, "
+            f"discriminator={self.discriminator!r}, created_at={self.created_at}>"
+        )
 
     def to_dict(self) -> Dict[str, Any]:
         return {
